@@ -20,12 +20,75 @@ type Tarea = {
 
 const DURACIONES = [15, 25, 45] as const;
 
+// Guarda cuándo termina el enfoque en localStorage, así una recarga de la página (o volver
+// de otra pestaña de la app) no reinicia la cuenta regresiva desde cero.
+function claveEnfoque(taskId: string) {
+  return `focuspulse:enfoque:${taskId}`;
+}
+
+function leerFinEnfoque(taskId: string): number | null {
+  try {
+    const crudo = localStorage.getItem(claveEnfoque(taskId));
+    if (!crudo) return null;
+    const { finAt } = JSON.parse(crudo) as { finAt: number };
+    return typeof finAt === "number" ? finAt : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarFinEnfoque(taskId: string, finAt: number) {
+  try {
+    localStorage.setItem(claveEnfoque(taskId), JSON.stringify({ finAt }));
+  } catch {
+    // Sin localStorage (modo privado, cuota llena): el enfoque sigue funcionando, solo no sobrevive un recargo.
+  }
+}
+
+function borrarFinEnfoque(taskId: string) {
+  try {
+    localStorage.removeItem(claveEnfoque(taskId));
+  } catch {
+    // Nada que limpiar si localStorage no está disponible.
+  }
+}
+
 export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null }) {
   const [tarea, setTarea] = useState(tareaInicial);
   const [enEnfoque, setEnEnfoque] = useState(false);
+  const [finEnfoque, setFinEnfoque] = useState<number | null>(null);
   const [duracion, setDuracion] = useState<15 | 25 | 45>(tareaInicial?.duration_minutes ?? 25);
   const [editando, setEditando] = useState(false);
   const [errorGlobal, setErrorGlobal] = useState("");
+
+  const terminarEnfoque = async (taskId: string) => {
+    try {
+      const actualizada = await completarTarea(taskId);
+      setTarea(actualizada as Tarea);
+      setErrorGlobal("");
+    } catch {
+      setErrorGlobal("No pudimos guardar que terminaste. Revisa tu conexión e intenta de nuevo.");
+    } finally {
+      borrarFinEnfoque(taskId);
+      setEnEnfoque(false);
+      setFinEnfoque(null);
+    }
+  };
+
+  // Al entrar a la pantalla (incluida una recarga), si había un enfoque en curso para esta
+  // tarea, lo retoma; si ya debía haber terminado mientras no estabas, cierra la tarea sola.
+  useEffect(() => {
+    if (!tarea || tarea.status !== "pending" || enEnfoque) return;
+    const finAt = leerFinEnfoque(tarea.id);
+    if (finAt === null) return;
+    if (finAt > Date.now()) {
+      setFinEnfoque(finAt);
+      setEnEnfoque(true);
+    } else {
+      terminarEnfoque(tarea.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tarea?.id, tarea?.status]);
 
   if (!tarea) {
     return <SinTarea onCreada={(t) => setTarea(t)} />;
@@ -50,34 +113,29 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
     );
   }
 
-  if (enEnfoque) {
+  if (enEnfoque && finEnfoque !== null) {
     return (
       <Enfoque
         texto={tarea.content}
         minutos={duracion}
-        onSalir={() => setEnEnfoque(false)}
-        onTerminar={async () => {
-          try {
-            const actualizada = await completarTarea(tarea.id);
-            setTarea(actualizada as Tarea);
-            setErrorGlobal("");
-          } catch {
-            setErrorGlobal("No pudimos guardar que terminaste. Revisa tu conexión e intenta de nuevo.");
-          } finally {
-            setEnEnfoque(false);
-          }
+        finAt={finEnfoque}
+        onSalir={() => {
+          borrarFinEnfoque(tarea.id);
+          setEnEnfoque(false);
+          setFinEnfoque(null);
         }}
+        onTerminar={() => terminarEnfoque(tarea.id)}
       />
     );
   }
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="w-11 h-11 rounded-[14px] bg-[var(--bg-hund,theme(colors.secondary))] shadow-[inset_0_2px_5px_rgba(110,90,158,0.18)] flex items-center justify-center mb-3.5">
+      <div className="w-11 h-11 rounded-[var(--radius-btn)] bg-[var(--bg-hund,theme(colors.secondary))] shadow-[inset_0_2px_5px_rgba(110,90,158,0.18)] flex items-center justify-center mb-3.5">
         <IconTask className="w-5 h-5 text-primary" />
       </div>
       <p className="text-xs font-bold text-primary uppercase tracking-wide">Tu única tarea de hoy</p>
-      <h1 className="text-[21px] font-bold leading-snug mt-1.5 max-w-[280px]">
+      <h1 className="text-[1.3125rem] font-bold leading-snug mt-1.5 max-w-[17.5rem]">
         Una sola cosa. Nada más compite por tu atención.
       </h1>
 
@@ -116,7 +174,7 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
       <div className="w-full mt-5">
         <button
           onClick={() => setEnEnfoque(true)}
-          className="w-full min-h-[54px] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base shadow-[0_10px_24px_-12px_rgba(110,90,158,0.45)]"
+          className="w-full min-h-[3.375rem] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base shadow-[0_10px_24px_-12px_rgba(110,90,158,0.45)]"
         >
           Empezar enfoque · {duracion} min
         </button>
@@ -169,11 +227,11 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="w-11 h-11 rounded-[14px] bg-secondary flex items-center justify-center mb-3.5">
+      <div className="w-11 h-11 rounded-[var(--radius-btn)] bg-secondary flex items-center justify-center mb-3.5">
         <IconTask className="w-5 h-5 text-primary" />
       </div>
       <p className="text-xs font-bold text-primary uppercase tracking-wide">Tu única tarea de hoy</p>
-      <h1 className="text-[21px] font-bold leading-snug mt-1.5 max-w-[280px]">
+      <h1 className="text-[1.3125rem] font-bold leading-snug mt-1.5 max-w-[17.5rem]">
         ¿Qué es lo ÚNICO que tienes que hacer ahora?
       </h1>
       <div className="w-full mt-5">
@@ -186,7 +244,7 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
           }}
           onKeyDown={(e) => e.key === "Enter" && guardar()}
           placeholder="Escribe tu única tarea…"
-          className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
+          className="w-full min-h-[3.25rem] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
         />
         {error && <p className="text-xs text-destructive font-semibold mt-1.5">Escribe algo para continuar</p>}
         {errorServidor && <p className="text-xs text-destructive font-semibold mt-1.5">{errorServidor}</p>}
@@ -194,7 +252,7 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
       <button
         onClick={guardar}
         disabled={guardando}
-        className="w-full min-h-[54px] mt-4 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base disabled:opacity-60"
+        className="w-full min-h-[3.375rem] mt-4 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base disabled:opacity-60"
       >
         {guardando ? "Guardando…" : "Empezar con esta tarea"}
       </button>
@@ -243,8 +301,8 @@ function ModalEditarTarea({
       className="fixed inset-0 bg-foreground/40 flex items-end justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onCancelar()}
     >
-      <div className="w-full max-w-[430px] bg-card rounded-t-[var(--radius-card)] p-6 pb-[max(20px,env(safe-area-inset-bottom))]">
-        <p className="text-[15px] font-medium mb-2.5">¿Qué es lo ÚNICO que quieres lograr ahora?</p>
+      <div className="w-full max-w-[26.875rem] bg-card rounded-t-[var(--radius-card)] p-6 pb-[max(20px,env(safe-area-inset-bottom))]">
+        <p className="text-[0.9375rem] font-medium mb-2.5">¿Qué es lo ÚNICO que quieres lograr ahora?</p>
         <input
           autoFocus
           value={valor}
@@ -253,7 +311,7 @@ function ModalEditarTarea({
             if (e.target.value.trim()) setError(false);
           }}
           onKeyDown={(e) => e.key === "Enter" && guardar()}
-          className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-background px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
+          className="w-full min-h-[3.25rem] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-background px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
         />
         {error && <p className="text-xs text-destructive font-semibold mt-1.5">Escribe algo para continuar</p>}
         {errorServidor && <p className="text-xs text-destructive font-semibold mt-1.5">{errorServidor}</p>}
@@ -261,11 +319,11 @@ function ModalEditarTarea({
           <button
             onClick={guardar}
             disabled={guardando}
-            className="min-h-[52px] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold disabled:opacity-60"
+            className="min-h-[3.25rem] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold disabled:opacity-60"
           >
             {guardando ? "Guardando…" : "Guardar"}
           </button>
-          <button onClick={onCancelar} className="min-h-[52px] rounded-[var(--radius-btn)] bg-secondary text-foreground font-medium">
+          <button onClick={onCancelar} className="min-h-[3.25rem] rounded-[var(--radius-btn)] bg-secondary text-foreground font-medium">
             Cancelar
           </button>
         </div>
@@ -277,35 +335,38 @@ function ModalEditarTarea({
 function Enfoque({
   texto,
   minutos,
+  finAt,
   onSalir,
   onTerminar,
 }: {
   texto: string;
   minutos: number;
+  finAt: number;
   onSalir: () => void;
   onTerminar: () => void;
 }) {
   const total = minutos * 60;
-  const [restante, setRestante] = useState(total);
+  const calcularRestante = () => Math.max(0, Math.round((finAt - Date.now()) / 1000));
+  const [restante, setRestante] = useState(calcularRestante);
   const terminadoRef = useRef(false);
 
+  // Ancla la cuenta regresiva a `finAt` (un instante real, guardado en localStorage) en vez de
+  // restar segundo a segundo: así sobrevive una recarga de la página y no se desfasa si el
+  // navegador pausa el temporizador por estar la pestaña en segundo plano.
   useEffect(() => {
-    const id = setInterval(() => {
-      setRestante((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          if (!terminadoRef.current) {
-            terminadoRef.current = true;
-            onTerminar();
-          }
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
+    const tick = () => {
+      const s = calcularRestante();
+      setRestante(s);
+      if (s <= 0 && !terminadoRef.current) {
+        terminadoRef.current = true;
+        onTerminar();
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [finAt]);
 
   const m = String(Math.floor(restante / 60)).padStart(2, "0");
   const s = String(restante % 60).padStart(2, "0");
@@ -313,8 +374,14 @@ function Enfoque({
   const pct = (total - restante) / total;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#342c45] via-[#241f30] to-foreground text-background flex flex-col items-center justify-center gap-6">
-      <div className="relative w-[188px] h-[188px]">
+    <div
+      className="fixed inset-0 z-50 text-background flex flex-col items-center justify-center gap-6"
+      style={{
+        backgroundImage:
+          "linear-gradient(180deg, color-mix(in oklab, var(--foreground) 94%, black) 0%, color-mix(in oklab, var(--foreground) 88%, black) 55%, var(--foreground) 100%)",
+      }}
+    >
+      <div className="relative w-[11.75rem] h-[11.75rem]">
         <svg viewBox="0 0 188 188" className="-rotate-90 w-full h-full">
           <circle cx="94" cy="94" r="80" fill="none" stroke="rgba(239,234,246,0.14)" strokeWidth="10" />
           <circle
@@ -330,14 +397,14 @@ function Enfoque({
             style={{ transition: "stroke-dashoffset .9s cubic-bezier(.22,.9,.3,1)" }}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-[40px] font-bold tabular-nums">
+        <div className="absolute inset-0 flex items-center justify-center text-[2.5rem] font-bold tabular-nums">
           {m}:{s}
         </div>
       </div>
-      <p className="text-base font-semibold max-w-[260px] text-center">{texto}</p>
+      <p className="text-base font-semibold max-w-[16.25rem] text-center">{texto}</p>
       <button
         onClick={onSalir}
-        className="flex items-center gap-1.5 bg-white/14 border border-white/22 rounded-full text-[13px] font-bold px-4.5 py-2.5 opacity-75"
+        className="flex items-center gap-1.5 bg-white/14 border border-white/22 rounded-full text-[0.8125rem] font-bold px-4.5 py-2.5 opacity-75"
       >
         <IconBack className="w-3.5 h-3.5" /> Terminar por ahora
       </button>
@@ -359,7 +426,7 @@ function Cierre({
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-3.5 text-center">
       <video
-        className="w-[132px] h-[132px] rounded-[var(--radius-card)] object-cover border border-primary/20 shadow-[0_10px_26px_-14px_rgba(110,90,158,0.45)]"
+        className="w-[8.25rem] h-[8.25rem] rounded-[var(--radius-card)] object-cover border border-primary/20 shadow-[0_10px_26px_-14px_rgba(110,90,158,0.45)]"
         autoPlay
         muted
         loop
@@ -368,8 +435,8 @@ function Cierre({
       >
         <source src="/assets/logro.mp4" type="video/mp4" />
       </video>
-      <h2 className="text-[21px] font-bold max-w-[280px]">Hiciste lo que tenías que hacer</h2>
-      <p className="text-sm text-muted-foreground max-w-[280px] leading-relaxed">
+      <h2 className="text-[1.3125rem] font-bold max-w-[17.5rem]">Hiciste lo que tenías que hacer</h2>
+      <p className="text-sm text-muted-foreground max-w-[17.5rem] leading-relaxed">
         Lo demás ya se movió a mañana. Sin culpa, sin números rojos.
       </p>
       <div className="flex gap-2.5 mt-2">
@@ -386,8 +453,8 @@ function Cierre({
 
 function Pill({ valor, etiqueta }: { valor: string; etiqueta: string }) {
   return (
-    <div className="bg-card border border-border rounded-[14px] px-4 py-3 text-center">
-      <b className="block text-[19px] font-extrabold">{valor}</b>
+    <div className="bg-card border border-border rounded-[var(--radius-btn)] px-4 py-3 text-center">
+      <b className="block text-[1.1875rem] font-extrabold">{valor}</b>
       <span className="text-[10.5px] text-muted-foreground">{etiqueta}</span>
     </div>
   );

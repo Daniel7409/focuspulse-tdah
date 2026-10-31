@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+
+const CORREO_SOPORTE = "emprendecolombia340@gmail.com";
 
 export default function PerfilMenu({ horaRecordatorio }: { horaRecordatorio: string }) {
   const router = useRouter();
@@ -45,12 +48,12 @@ export default function PerfilMenu({ horaRecordatorio }: { horaRecordatorio: str
       <MenuItem
         icono={<IconShield className="w-[18px] h-[18px]" />}
         texto="Privacidad y datos"
-        onClick={() => proximamente("Próximamente.")}
+        href="/privacidad"
       />
       <MenuItem
         icono={<IconHelp className="w-[18px] h-[18px]" />}
         texto="Ayuda y soporte"
-        onClick={() => proximamente("Próximamente.")}
+        href={`mailto:${CORREO_SOPORTE}`}
       />
       <MenuItem
         icono={<IconLogout className="w-[18px] h-[18px]" />}
@@ -98,23 +101,42 @@ function MenuItem({
   icono,
   texto,
   onClick,
+  href,
   peligro,
 }: {
   icono: React.ReactNode;
   texto: string;
-  onClick: () => void;
+  onClick?: () => void;
+  href?: string;
   peligro?: boolean;
 }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 min-h-[52px] px-4 rounded-[14px] border text-left text-sm font-medium ${
-        peligro ? "border-destructive/25 text-destructive" : "border-border text-foreground"
-      } bg-card`}
-    >
+  const clase = `flex items-center gap-3 min-h-[52px] px-4 rounded-[var(--radius-btn)] border text-left text-sm font-medium ${
+    peligro ? "border-destructive/25 text-destructive" : "border-border text-foreground"
+  } bg-card`;
+  const contenido = (
+    <>
       <span className={peligro ? "text-destructive" : "text-primary"}>{icono}</span>
       <span className="flex-1">{texto}</span>
       {!peligro && <IconChev className="w-4 h-4 text-muted-foreground" />}
+    </>
+  );
+
+  if (href) {
+    const externo = href.startsWith("mailto:");
+    return externo ? (
+      <a href={href} className={clase}>
+        {contenido}
+      </a>
+    ) : (
+      <Link href={href} className={clase}>
+        {contenido}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={clase}>
+      {contenido}
     </button>
   );
 }
