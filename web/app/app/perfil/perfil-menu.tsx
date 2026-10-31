@@ -12,10 +12,17 @@ export default function PerfilMenu({ horaRecordatorio }: { horaRecordatorio: str
 
   async function cerrarSesion() {
     setCerrando(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.push("/login");
+      router.refresh();
+    } catch {
+      setCerrando(false);
+      setConfirmando(false);
+      proximamente("No pudimos cerrar tu sesión. Intenta de nuevo.");
+    }
   }
 
   function proximamente(mensaje: string) {

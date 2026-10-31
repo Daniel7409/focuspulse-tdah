@@ -25,7 +25,7 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
   const [enEnfoque, setEnEnfoque] = useState(false);
   const [duracion, setDuracion] = useState<15 | 25 | 45>(tareaInicial?.duration_minutes ?? 25);
   const [editando, setEditando] = useState(false);
-  const [creando, setCreando] = useState(false);
+  const [errorGlobal, setErrorGlobal] = useState("");
 
   if (!tarea) {
     return <SinTarea onCreada={(t) => setTarea(t)} />;
@@ -36,9 +36,15 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
       <Cierre
         tarea={tarea}
         duracion={duracion}
+        error={errorGlobal}
         onDeshacer={async () => {
-          const actualizada = await deshacerCierre(tarea.id);
-          setTarea(actualizada as Tarea);
+          try {
+            const actualizada = await deshacerCierre(tarea.id);
+            setTarea(actualizada as Tarea);
+            setErrorGlobal("");
+          } catch {
+            setErrorGlobal("No pudimos deshacer. Revisa tu conexión e intenta de nuevo.");
+          }
         }}
       />
     );
@@ -51,9 +57,15 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
         minutos={duracion}
         onSalir={() => setEnEnfoque(false)}
         onTerminar={async () => {
-          const actualizada = await completarTarea(tarea.id);
-          setTarea(actualizada as Tarea);
-          setEnEnfoque(false);
+          try {
+            const actualizada = await completarTarea(tarea.id);
+            setTarea(actualizada as Tarea);
+            setErrorGlobal("");
+          } catch {
+            setErrorGlobal("No pudimos guardar que terminaste. Revisa tu conexión e intenta de nuevo.");
+          } finally {
+            setEnEnfoque(false);
+          }
         }}
       />
     );
@@ -73,13 +85,22 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
         <p className="text-[16px] font-bold leading-snug">{tarea.content}</p>
       </div>
 
+      {errorGlobal && <p className="text-xs text-destructive font-semibold mt-2.5">{errorGlobal}</p>}
+
       <div className="flex gap-2 mt-4 w-full">
         {DURACIONES.map((m) => (
           <button
             key={m}
             onClick={async () => {
+              const anterior = duracion;
               setDuracion(m);
-              await elegirDuracion(tarea.id, m);
+              try {
+                await elegirDuracion(tarea.id, m);
+                setErrorGlobal("");
+              } catch {
+                setDuracion(anterior);
+                setErrorGlobal("No pudimos guardar la duración. Intenta de nuevo.");
+              }
             }}
             className={`flex-1 min-h-11 rounded-full border-[1.5px] text-xs font-semibold transition ${
               duracion === m
@@ -121,7 +142,6 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
           }}
         />
       )}
-      {creando && null}
     </div>
   );
 }
@@ -130,6 +150,7 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
   const [valor, setValor] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(false);
+  const [errorServidor, setErrorServidor] = useState("");
 
   async function guardar() {
     if (!valor.trim()) {
@@ -137,8 +158,13 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
       return;
     }
     setGuardando(true);
-    const nueva = await crearTareaHoy(valor);
-    onCreada(nueva as Tarea);
+    try {
+      const nueva = await crearTareaHoy(valor);
+      onCreada(nueva as Tarea);
+    } catch {
+      setGuardando(false);
+      setErrorServidor("No pudimos guardar tu tarea. Revisa tu conexión e intenta de nuevo.");
+    }
   }
 
   return (
@@ -163,6 +189,7 @@ function SinTarea({ onCreada }: { onCreada: (t: Tarea) => void }) {
           className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
         />
         {error && <p className="text-xs text-destructive font-semibold mt-1.5">Escribe algo para continuar</p>}
+        {errorServidor && <p className="text-xs text-destructive font-semibold mt-1.5">{errorServidor}</p>}
       </div>
       <button
         onClick={guardar}
@@ -181,12 +208,13 @@ function ModalEditarTarea({
   onCancelar,
 }: {
   valorInicial: string;
-  onGuardar: (v: string) => void;
+  onGuardar: (v: string) => Promise<void>;
   onCancelar: () => void;
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [error, setError] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [errorServidor, setErrorServidor] = useState("");
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {
@@ -202,7 +230,12 @@ function ModalEditarTarea({
       return;
     }
     setGuardando(true);
-    onGuardar(valor);
+    try {
+      await onGuardar(valor);
+    } catch {
+      setGuardando(false);
+      setErrorServidor("No pudimos guardar el cambio. Intenta de nuevo.");
+    }
   }
 
   return (
@@ -223,6 +256,7 @@ function ModalEditarTarea({
           className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-background px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
         />
         {error && <p className="text-xs text-destructive font-semibold mt-1.5">Escribe algo para continuar</p>}
+        {errorServidor && <p className="text-xs text-destructive font-semibold mt-1.5">{errorServidor}</p>}
         <div className="flex flex-col gap-2.5 mt-4">
           <button
             onClick={guardar}
@@ -315,10 +349,12 @@ function Cierre({
   tarea,
   duracion,
   onDeshacer,
+  error,
 }: {
   tarea: Tarea;
   duracion: number;
   onDeshacer: () => void;
+  error?: string;
 }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-3.5 text-center">
@@ -343,6 +379,7 @@ function Cierre({
       <button onClick={onDeshacer} className="text-sm text-muted-foreground font-medium mt-2">
         Deshacer
       </button>
+      {error && <p className="text-xs text-destructive font-semibold">{error}</p>}
     </div>
   );
 }
