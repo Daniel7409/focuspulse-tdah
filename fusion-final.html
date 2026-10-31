@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es" data-kit="abc-v2">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dirección final — FocusPulse TDAH</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #efeaf6;
+    --surface: #f9f6fc;
+    --text-1: #2c2638;
+    --text-2: #7c7490;
+    --accent: #6e5a9e;
+    --radius-card: 20px;
+    --radius-btn: 14px;
+    --font: 'DM Sans', monospace; /* fallback-trampa: si ves letra de máquina, la fuente no cargó */
+    --shadow-tinta: 110 90 158;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background:
+      radial-gradient(1100px 520px at 12% -6%, #f7f7f9, transparent 62%),
+      radial-gradient(900px 460px at 92% 4%, #e2e2e9, transparent 58%),
+      linear-gradient(180deg, #ededf0, #e4e4e9);
+    padding: 36px 20px 64px; font-family: 'Segoe UI', system-ui, sans-serif; color: #1c1c1f;
+  }
+  .cabecera { max-width: 760px; margin: 0 auto 28px; text-align: center; }
+  .cabecera h1 { font-size: 22px; font-weight: 700; }
+  .cabecera p { margin-top: 8px; font-size: 14px; color: #55555c; }
+  .cabecera .badges { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .cabecera .badges span { font-size: 12px; font-weight: 600; background: #f0eef8; border: 1px solid #d8d3e8; color: #4a3f66; border-radius: 999px; padding: 5px 12px; }
+
+  .marco { max-width: 360px; margin: 0 auto; }
+  .telefono {
+    width: 320px; margin: 0 auto; aspect-ratio: 9 / 19.5;
+    border: 10px solid #101014; border-radius: 46px;
+    box-shadow: 0 24px 60px rgb(20 18 24 / 0.28);
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+    background: var(--bg);
+  }
+  .statusbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 6px; font-size: 13px; font-weight: 600; color: var(--text-1); font-variant-numeric: tabular-nums; }
+  .statusbar .der { display: flex; align-items: center; gap: 5px; }
+  .home-indicator { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 116px; height: 5px; border-radius: 999px; background: var(--text-1); opacity: 0.85; }
+  .pantalla { flex: 1; display: flex; flex-direction: column; overflow: hidden; font-family: var(--font); color: var(--text-1); padding: 0 18px; }
+
+  .topbar-app { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .topbar-app .fecha { font-size: 12px; font-weight: 500; color: var(--text-2); }
+
+  /* héroe: anillo de B + tarea de A */
+  .anillo-wrap { margin: 12px auto 0; position: relative; width: 128px; height: 128px; }
+  .anillo-wrap .centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .anillo-wrap .tiempo { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .anillo-wrap .tiempo-label { font-size: 10px; color: var(--text-2); font-weight: 600; margin-top: 2px; }
+
+  .tarea-wrap {
+    margin-top: 14px; border-radius: var(--radius-card);
+    border: 1.5px solid transparent;
+    background: linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(135deg, color-mix(in oklab, var(--accent) 40%, transparent), transparent 60%) border-box;
+    box-shadow: 0 14px 30px -12px rgb(var(--shadow-tinta) / 0.22);
+    padding: 16px 16px; text-align: center;
+  }
+  .tarea-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+  .tarea-texto { font-size: 19px; font-weight: 700; line-height: 1.25; margin-top: 8px; }
+  .rollover-nota { margin-top: 8px; font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+
+  /* lo que se movió — de C, tachado con cariño */
+  .movidas { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .movidas .fila { display: flex; align-items: center; gap: 8px; opacity: 0.6; }
+  .movidas .fila svg { flex-shrink: 0; }
+  .movidas .fila span { font-size: 12px; text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--text-2) 50%, transparent); color: var(--text-2); }
+  .movidas .leyenda { margin-top: 2px; font-size: 10.5px; color: var(--text-2); font-style: italic; }
+
+  .racha-row { margin-top: 14px; display: flex; align-items: center; gap: 6px; justify-content: center; }
+  .racha-row .dots { display: flex; gap: 4px; }
+  .racha-row .dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); display: block; }
+  .racha-row .dots i.vacio { background: color-mix(in oklab, var(--text-2) 30%, transparent); }
+  .racha-row b { font-size: 12px; font-weight: 700; }
+  .racha-row span.lbl { font-size: 10.5px; color: var(--text-2); }
+
+  .cta { margin-top: 14px; display: flex; align-items: center; justify-content: center; height: 48px; border-radius: var(--radius-btn); font-size: 15px; font-weight: 700; background: var(--accent); color: #f9f6fc; box-shadow: 0 8px 22px color-mix(in oklab, var(--accent) 30%, transparent); }
+
+  .tabbar { display: flex; align-items: stretch; justify-content: space-around; margin: 12px -18px 0; padding: 8px 8px 16px; border-top: 1px solid color-mix(in oklab, var(--text-2) 18%, transparent); background: color-mix(in oklab, var(--surface) 88%, transparent); }
+  .tabbar a { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 600; color: var(--text-2); text-decoration: none; }
+  .tabbar .tab-chip { display: flex; align-items: center; justify-content: center; width: 36px; height: 26px; border-radius: 9px; }
+  .tabbar a.activa { color: var(--accent); }
+  .tabbar a.activa .tab-chip { background: color-mix(in oklab, var(--accent) 14%, transparent); }
+
+  .ficha { max-width: 620px; margin: 28px auto 0; background: #fff; border: 1px solid #e2e2e8; border-radius: 16px; padding: 20px 22px; }
+  .ficha h2 { font-size: 15px; font-weight: 700; }
+  .ficha ul { margin-top: 10px; padding-left: 18px; font-size: 13px; color: #3a3a40; line-height: 1.8; }
+  .ficha .tokens { margin-top: 12px; font-family: ui-monospace, monospace; font-size: 12px; color: #6a6a72; }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <h1>Dirección final — FocusPulse TDAH</h1>
+  <p>Fusión aprobada: lila calmante de B + tarjeta de tarea de A + rollover visible de C.</p>
+  <div class="badges">
+    <span>Anillo de enfoque — de B</span>
+    <span>Tarjeta cálida + copy — de A</span>
+    <span>Tachado con cariño — de C</span>
+  </div>
+</header>
+
+<div class="marco">
+  <div class="telefono">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="der">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="5" width="3" height="6" rx="0.8"/><rect x="9" y="3" width="3" height="8" rx="0.8"/><rect x="13.5" y="0.5" width="3" height="10.5" rx="0.8"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0"/><path d="M3.8 6.6a6.2 6.2 0 0 1 8.4 0"/><path d="M6.2 9a2.8 2.8 0 0 1 3.6 0"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="15" height="8" rx="1.6" fill="currentColor"/><rect x="22.5" y="3.8" width="2" height="4.4" rx="1" fill="currentColor" opacity="0.4"/></svg>
+      </span>
+    </div>
+
+    <div class="pantalla">
+      <div class="topbar-app"><span class="fecha">Martes 6 de agosto</span></div>
+
+      <div class="anillo-wrap">
+        <svg width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="18 minutos 32 restantes de enfoque">
+          <circle cx="64" cy="64" r="54" fill="none" stroke-width="10" stroke="rgba(110,90,158,0.16)"/>
+          <circle cx="64" cy="64" r="54" fill="none" stroke-width="10" stroke="#6e5a9e" stroke-linecap="round"
+                  stroke-dasharray="339.3" stroke-dashoffset="101.8" transform="rotate(-90 64 64)"/>
+        </svg>
+        <div class="centro">
+          <span class="tiempo">18:32</span>
+          <span class="tiempo-label">enfocado</span>
+        </div>
+      </div>
+
+      <div class="tarea-wrap">
+        <p class="tarea-label">Tu única tarea ahora</p>
+        <h3 class="tarea-texto">Enviar el diseño al cliente</h3>
+        <p class="rollover-nota">Lo demás ya se movió a mañana. Sin culpa.</p>
+      </div>
+
+      <div class="movidas">
+        <div class="fila">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c7490" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M17 2v6h-6"/><path d="M3 12a9 9 0 0 1 14-6.7L17 8"/></svg>
+          <span>Cierre de facturación</span>
+        </div>
+        <div class="fila">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c7490" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M17 2v6h-6"/><path d="M3 12a9 9 0 0 1 14-6.7L17 8"/></svg>
+          <span>Llamada con Andrés</span>
+        </div>
+        <p class="leyenda">se movieron solas — hoy no cuentan</p>
+      </div>
+
+      <div class="racha-row">
+        <span class="lbl">Racha de calma</span>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="vacio"></i><i class="vacio"></i></div>
+        <b>12 días</b>
+      </div>
+
+      <div class="cta">Empezar enfoque</div>
+
+      <nav class="tabbar" aria-label="Navegación">
+        <a class="activa" href="#"><span class="tab-chip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>Hoy</a>
+        <a href="#"><span class="tab-chip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L22 9.3l-5.4 4.6 1.8 7.1L12 17l-6.4 4 1.8-7.1L2 9.3l7.4-.4Z"/></svg></span>Rachas</a>
+        <a href="#"><span class="tab-chip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></span>Perfil</a>
+      </nav>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<div class="ficha">
+  <h2>Ficha de la dirección elegida</h2>
+  <ul>
+    <li><b>Fondo:</b> lila calmante (tu ajuste) + superficie casi blanca.</li>
+    <li><b>Acento:</b> violeta sobrio — un solo color, sin neón.</li>
+    <li><b>Tipografía:</b> DM Sans, una sola familia (patrón más seguro de las apps líderes).</li>
+    <li><b>Dispositivo ownable:</b> el anillo de enfoque (de Streaks) + las tareas movidas tachadas con cariño, nunca en rojo (de la idea de bitácora).</li>
+    <li><b>Gamificación adulta:</b> racha en puntos — sin mascotas, sin niveles infantiles.</li>
+  </ul>
+  <p class="tokens">--bg #EFEAF6 · --surface #F9F6FC · --text-1 #2C2638 · --text-2 #7C7490 · --accent #6E5A9E · radius 20/14 · DM Sans</p>
+</div>
+
+</body>
+</html>

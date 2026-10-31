@@ -1,0 +1,23 @@
+# Entornos y secretos — nunca se suben
+.env
+.env.*
+!.env.example
+*.pem
+.vercel
+
+# Dependencias y build (cada subproyecto trae su propio .gitignore también)
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

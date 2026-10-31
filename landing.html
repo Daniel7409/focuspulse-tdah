@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FocusPulse TDAH — Una sola tarea. Cero culpa.</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/isotipo-192.png">
+<link rel="apple-touch-icon" href="assets/isotipo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #efeaf6; --bg-alt: #f6f3fa; --surface: #ffffff; --text-1: #2c2638; --text-2: #65607a;
+    --accent: #6e5a9e; --accent-ink: #f9f6fc; --radius-card: 20px; --radius-btn: 14px;
+    --shadow-tinta: 110 90 158;
+    --surface-grad: linear-gradient(165deg, #ffffff 0%, #faf7ff 55%, #f5f0fb 100%);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @keyframes reveal-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes ring-draw { from { stroke-dashoffset: 239; } }
+  /* .reveal arranca OCULTO y solo anima cuando el scroll lo trae a vista (ver IntersectionObserver abajo) */
+  .reveal { opacity: 0; transform: translateY(14px); }
+  .reveal.in-view { animation: reveal-up .5s cubic-bezier(.22,.9,.3,1) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; animation: none; }
+    .anillo svg circle:last-child { animation: none !important; stroke-dashoffset: 70 !important; }
+  }
+  body { font-family: 'DM Sans', system-ui, sans-serif; color: var(--text-1); background: var(--bg); }
+  img, svg { display: block; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 72px 0; }
+  h1,h2,h3 { line-height: 1.15; letter-spacing: -0.01em; font-weight: 800; }
+  .acento { color: var(--accent); }
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    border-radius: 14px; background: color-mix(in oklab, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent); flex-shrink: 0;
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 52px; padding: 0 26px; border-radius: var(--radius-btn); font-weight: 700; font-size: 16px;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 88%, white), var(--accent));
+    color: var(--accent-ink); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 14px 30px -10px color-mix(in oklab, var(--accent) 50%, transparent);
+    border: none; cursor: pointer; text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn:hover { filter: brightness(1.04); }
+  .btn:active { transform: scale(.97); }
+  .btn-outline { background: var(--surface); color: var(--accent); border: 1.5px solid color-mix(in oklab, var(--accent) 45%, transparent); box-shadow: none; }
+  .btn-outline:hover { background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
+  .micro { font-size: 12.5px; color: var(--text-2); margin-top: 10px; }
+
+  /* NAV */
+  nav.topnav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); background: color-mix(in oklab, var(--bg) 82%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--text-2) 14%, transparent); }
+  nav.topnav .wrap { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; padding-bottom: 14px; }
+  .marca { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; }
+  .marca .punto { width: 10px; height: 10px; border-radius: 999px; background: var(--accent); }
+  .marca .sufijo { font-weight: 600; color: var(--text-2); font-size: 0.78em; margin-left: 2px; }
+
+  /* HERO */
+  .hero { padding-top: 56px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+  .hero .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: color-mix(in oklab, var(--accent) 10%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 24%, transparent); border-radius: 999px; padding: 6px 14px; }
+  .hero h1 { font-size: 46px; margin-top: 16px; }
+  .hero p.sub { margin-top: 16px; font-size: 18px; color: var(--text-2); max-width: 46ch; line-height: 1.5; }
+  .hero .ctas { margin-top: 26px; }
+  .hero-visual { background: linear-gradient(160deg, var(--surface), var(--bg-alt)); border-radius: 28px; border: 1px solid color-mix(in oklab, var(--accent) 16%, transparent); padding: 28px; box-shadow: 0 30px 70px -30px rgb(var(--shadow-tinta) / .3); }
+  .telefono-mini { width: 230px; margin: 0 auto; aspect-ratio: 9/18; background: var(--bg); border: 7px solid #15111f; border-radius: 32px; overflow: hidden; padding: 22px 16px; display:flex; flex-direction:column; }
+  .telefono-mini .anillo { width: 92px; height: 92px; margin: 10px auto 0; position: relative; }
+  .telefono-mini .anillo svg circle:last-child { animation: ring-draw 1.1s cubic-bezier(.22,.9,.3,1) .3s both; }
+  .telefono-mini .anillo .c { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; }
+  .telefono-mini .tarea { margin-top: 14px; background: var(--surface); border-radius: 14px; padding: 12px; text-align:center; border:1px solid color-mix(in oklab, var(--accent) 20%, transparent); }
+  .telefono-mini .tarea .l { font-size:9px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+  .telefono-mini .tarea .t { font-size:13px; font-weight:700; margin-top:4px; }
+  .telefono-mini .cta-mini { margin-top:auto; height:38px; border-radius:10px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+
+  /* PROBLEMA */
+  .problema-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 36px; }
+  .problema-card { display:flex; gap:14px; align-items:flex-start; background: var(--surface-grad); border-radius: var(--radius-card); border: 1px solid color-mix(in oklab, var(--text-2) 14%, transparent); padding: 20px; }
+  .problema-card p { font-size: 15px; font-weight: 600; line-height: 1.5; }
+
+  /* AGITACION */
+  .agitacion {
+    background:
+      radial-gradient(900px 420px at 85% -10%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 60%),
+      linear-gradient(165deg, #342c45 0%, #27212f 60%, #1e1a27 100%);
+    color: var(--bg); border-radius: 28px;
+  }
+  .agitacion .wrap { padding: 56px 40px; }
+  .agitacion h2 { font-size: 30px; max-width: 24ch; }
+  .agitacion h2 .acento { color: #d7c9f0; }
+  .agitacion p { margin-top: 16px; font-size: 16px; color: #cfc9dd; max-width: 56ch; line-height: 1.6; }
+  .agitacion .costos { display:flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+  .agitacion .pill { background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 14px; padding: 14px 18px; }
+  .agitacion .pill b { display:block; font-size: 22px; }
+  .agitacion .pill span { font-size: 11.5px; color: #b6adc9; }
+
+  /* SOLUCION */
+  .solucion-head { text-align: center; max-width: 54ch; margin: 0 auto; }
+  .solucion-head h2 { font-size: 32px; }
+  .pasos { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-top: 42px; }
+  .paso { background: var(--surface-grad); border-radius: var(--radius-card); border: 1.5px solid transparent;
+    background-image: var(--surface-grad), linear-gradient(135deg, color-mix(in oklab, var(--accent) 35%, transparent), transparent 60%);
+    background-origin: border-box; background-clip: padding-box, border-box;
+    padding: 26px; box-shadow: 0 16px 36px -18px rgb(var(--shadow-tinta) / .22); }
+  .paso .num { font-size: 12px; font-weight: 800; color: var(--accent); }
+  .paso h3 { font-size: 17px; margin-top: 10px; }
+  .paso p { font-size: 13.5px; color: var(--text-2); margin-top: 6px; line-height: 1.5; }
+
+  /* "LA APP POR DENTRO" — grid fijo, SIN scroll horizontal (anti-patrón prohibido) */
+  .carrusel-track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin-top: 36px; }
+  .carrusel-track .item { background: var(--surface); border-radius: 18px; border: 1px solid color-mix(in oklab, var(--text-2) 16%, transparent); padding: 16px; text-align:center; }
+  .carrusel-track .item .cap { width: 100%; aspect-ratio: 9/16; border-radius: 12px; background: linear-gradient(165deg, var(--bg-alt), var(--bg)); margin-bottom: 10px; padding: 10px; display:flex; }
+  .carrusel-track .item h4 { font-size: 13px; }
+  .carrusel-track .item p { font-size: 11.5px; color: var(--text-2); margin-top: 4px; }
+
+  /* Mini-pantallas reales del tour (nunca un ícono solo sobre fondo vacío) */
+  .mini { flex: 1; border-radius: 9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding: 8px; position:relative; overflow:hidden; }
+  .mini.claro { background: var(--surface-grad); }
+  .mini.oscuro { background: linear-gradient(165deg, #2c2638, #1e1a27); }
+  .mini .chip { width: 26px; height: 26px; border-radius: 8px; background: color-mix(in oklab, var(--accent) 14%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent); display:flex; align-items:center; justify-content:center; }
+  .mini .linea { height: 5px; border-radius: 3px; background: color-mix(in oklab, var(--text-2) 24%, transparent); }
+  .mini .linea.corta { width: 55%; }
+  .mini .linea.media { width: 75%; }
+  .mini .pastilla { font-size: 7.5px; font-weight: 700; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 3px 10px; }
+  .mini .anillo-mini-v { position: relative; width: 38px; height: 38px; }
+  .mini .anillo-mini-v span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:700; color:#f3eefb; }
+  .mini .fila-chip { display:flex; gap:4px; }
+  .mini .tarjeta { width: 100%; background: color-mix(in oklab, var(--surface) 90%, transparent); border-radius: 7px; padding: 6px; display:flex; flex-direction:column; gap:3px; border: 1px solid color-mix(in oklab, var(--accent) 16%, transparent); }
+  .mini .dias { display:flex; gap:3px; }
+  .mini .dia { width: 11px; height: 11px; border-radius: 3px; background: color-mix(in oklab, var(--text-2) 16%, transparent); }
+  .mini .dia.on { background: var(--accent); }
+  @media (max-width: 860px) {
+    .carrusel-track { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .carrusel-track .item { padding: 10px; }
+    .carrusel-track .item h4 { font-size: 11.5px; }
+    .carrusel-track .item p { font-size: 10px; }
+  }
+
+  /* OFERTA */
+  .oferta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 40px; max-width: 760px; margin-inline: auto; }
+  .plan { background: var(--surface-grad); border-radius: var(--radius-card); border: 1.5px solid color-mix(in oklab, var(--text-2) 32%, transparent); box-shadow: 0 10px 26px -18px rgb(var(--shadow-tinta) / .25); padding: 28px; position: relative; }
+  .plan.recomendado { border-color: var(--accent); box-shadow: 0 18px 44px -18px rgb(var(--shadow-tinta) / .35); }
+  .plan .badge-top { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:var(--accent); color:var(--accent-ink); font-size:11px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; padding:5px 14px; border-radius:999px; }
+  .plan .nombre { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .03em; }
+  .plan .precio { font-size: 38px; font-weight: 800; margin-top: 8px; }
+  .plan .precio small { font-size: 15px; font-weight: 600; color: var(--text-2); }
+  .plan .total-anual { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+  .plan ul { margin-top: 18px; list-style: none; display:flex; flex-direction:column; gap: 10px; }
+  .plan li { display:flex; gap:8px; align-items:flex-start; font-size: 13.5px; color: var(--text-1); }
+  .plan .btn { width: 100%; margin-top: 20px; }
+  .plan .garantia-mini { display:flex; align-items:center; justify-content:center; gap:6px; margin-top: 12px; font-size: 13.5px; color: var(--text-1); font-weight: 700; }
+  .plan .garantia-mini svg { flex-shrink: 0; }
+
+  /* GARANTIA */
+  .garantia { display:flex; gap: 26px; align-items:center; background: var(--surface-grad); border-radius: 28px; padding: 40px; border: 1.5px solid color-mix(in oklab, var(--accent) 38%, transparent); box-shadow: 0 18px 40px -20px rgb(var(--shadow-tinta) / .3); }
+  .garantia .sello { width: 84px; height: 84px; border-radius: 999px; background: color-mix(in oklab, var(--accent) 16%, transparent); border: 2.5px solid var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .garantia .sello svg { stroke: var(--accent); }
+  .garantia h2 { font-size: 24px; }
+  .garantia p { margin-top: 8px; color: var(--text-2); font-size: 14.5px; max-width: 60ch; }
+
+  /* FAQ */
+  .faq-list { max-width: 720px; margin: 36px auto 0; display: flex; flex-direction: column; gap: 10px; }
+  details { background: var(--surface-grad); border-radius: 16px; border: 1px solid color-mix(in oklab, var(--text-2) 14%, transparent); padding: 16px 18px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 15px; list-style: none; display:flex; justify-content:space-between; align-items:center; }
+  summary::-webkit-details-marker { display:none; }
+  details p { margin-top: 10px; font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
+
+  /* CTA FINAL */
+  .cta-final { text-align: center; background: linear-gradient(165deg, var(--surface), var(--bg-alt)); border-radius: 28px; border:1px solid color-mix(in oklab, var(--accent) 18%, transparent); padding: 64px 24px; }
+  .cta-final h2 { font-size: 30px; max-width: 26ch; margin: 0 auto; }
+
+  /* FOOTER */
+  footer { border-top: 1px solid color-mix(in oklab, var(--text-2) 16%, transparent); padding: 32px 0 50px; }
+  footer .wrap { display:flex; flex-wrap:wrap; gap: 16px; justify-content:space-between; align-items:center; }
+  footer a { color: var(--text-2); font-size: 12.5px; text-decoration: none; margin-right: 16px; }
+  footer p.disclaimer { font-size: 11.5px; color: var(--text-2); margin-top: 14px; max-width: 70ch; line-height: 1.6; }
+
+  @media (max-width: 860px) {
+    section { padding: 36px 0; }
+    .hero { grid-template-columns: 1fr; gap: 28px; }
+    .hero h1 { font-size: 30px; }
+    .hero-visual { padding: 18px; max-width: 240px; margin: 0 auto; }
+    .telefono-mini { width: 200px; }
+    .problema-grid, .oferta-grid, .pasos { grid-template-columns: 1fr; }
+    .oferta-grid { gap: 16px; margin-top: 26px; }
+    .plan { padding: 22px; }
+    .pasos { gap: 16px; margin-top: 28px; }
+    .agitacion .wrap { padding: 36px 22px; }
+    .garantia { flex-direction: column; text-align: center; padding: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap">
+    <div class="marca"><span class="punto"></span>FocusPulse<span class="sufijo">TDAH</span></div>
+    <a href="#oferta" class="btn" style="height:48px;padding:0 20px;font-size:14px">Probar gratis</a>
+  </div>
+</nav>
+
+<!-- 1. HERO -->
+<header class="hero wrap">
+  <div>
+    <h1 class="reveal" style="animation-delay:0ms">Una sola tarea. <span class="acento">Cero culpa.</span></h1>
+    <p class="sub reveal" style="animation-delay:140ms">El primer planificador en español que <b>perdona automáticamente</b> lo que no hiciste hoy.</p>
+    <div class="ctas reveal" style="animation-delay:210ms">
+      <a href="#oferta" class="btn">Probar gratis 5 días</a>
+      <p class="micro">Sin tarjeta para empezar · cancela cuando quieras</p>
+    </div>
+  </div>
+  <div class="hero-visual reveal" style="animation-delay:280ms">
+    <div class="telefono-mini">
+      <div class="anillo">
+        <svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke-width="7" stroke="rgba(110,90,158,.16)"/><circle cx="46" cy="46" r="38" fill="none" stroke-width="7" stroke="#6e5a9e" stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="70" transform="rotate(-90 46 46)"/></svg>
+        <div class="c">18:32</div>
+      </div>
+      <div class="tarea">
+        <p class="l">Tu única tarea</p>
+        <p class="t">Enviar el diseño al cliente</p>
+      </div>
+      <div class="cta-mini">Empezar enfoque</div>
+    </div>
+  </div>
+</header>
+
+<!-- 2. PROBLEMA -->
+<section class="wrap">
+  <h2 style="font-size:30px;text-align:center;max-width:36ch;margin:0 auto">¿Te suena familiar?</h2>
+  <div class="problema-grid">
+    <div class="problema-card reveal" style="animation-delay:0ms">
+      <span class="chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <p>¿Abres tu lista y sientes un <span class="acento">golpe de ansiedad</span> al ver todo en rojo?</p>
+    </div>
+    <div class="problema-card reveal" style="animation-delay:60ms">
+      <span class="chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <p>¿Te saltaste un día y ahora evitas abrir la app por miedo a lo acumulado?</p>
+    </div>
+    <div class="problema-card reveal" style="animation-delay:120ms">
+      <span class="chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L22 9.3l-5.4 4.6 1.8 7.1L12 17l-6.4 4 1.8-7.1L2 9.3l7.4-.4Z"/></svg></span>
+      <p>¿Empiezas cinco cosas a la vez y no terminas ninguna?</p>
+    </div>
+    <div class="problema-card reveal" style="animation-delay:180ms">
+      <span class="chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>
+      <p>¿Ya probaste Notion, Todoist o Trello... y los abandonaste a los pocos días?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. AGITACION -->
+<section class="wrap">
+  <div class="agitacion">
+    <div class="wrap">
+      <h2>No es falta de voluntad. Es <span class="acento">el diseño</span> de las otras apps.</h2>
+      <p>Cada lista infinita te cuesta hasta <b>3 horas al día</b> paralizado decidiendo qué hacer — y la vergüenza de sentir que fallas, cuando te esfuerzas el triple que los demás.</p>
+      <div class="costos">
+        <div class="pill"><b><span class="cuenta" data-target="3" data-suffix="h/día">0h/día</span></b><span>perdidas en parálisis</span></div>
+        <div class="pill"><b><span style="margin-right:2px">+</span><span class="cuenta" data-target="700" data-suffix="h/año">0h/año</span></b><span>que no vuelven</span></div>
+        <div class="pill"><b><span class="cuenta" data-target="0" data-suffix="">0</span></b><span>clientes que quieres perder</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. SOLUCION -->
+<section class="wrap">
+  <div class="solucion-head">
+    <h2>Conoce el <span class="acento">Pase Cero Culpa</span></h2>
+    <p style="margin-top:14px;color:var(--text-2);font-size:15.5px">Ves una sola tarea. Cuando cambia el día, lo que no hiciste <b>se mueve solo</b> a mañana — tachado con cariño, nunca en rojo.</p>
+  </div>
+  <div class="pasos">
+    <div class="paso reveal" style="animation-delay:0ms"><p class="num">01</p><h3>Escribe tu única tarea</h3><p>Un campo, sin categorías ni proyectos que configurar.</p></div>
+    <div class="paso reveal" style="animation-delay:80ms"><p class="num">02</p><h3>Enfócate con el temporizador</h3><p>Pantalla completa, apaga el ruido del teléfono.</p></div>
+    <div class="paso reveal" style="animation-delay:160ms"><p class="num">03</p><h3>Lo demás se reacomoda solo</h3><p>Nada se pierde. Nada te regaña. Mañana empiezas en limpio.</p></div>
+  </div>
+</section>
+
+<!-- 5. LA APP POR DENTRO -->
+<section class="wrap">
+  <h2 style="font-size:28px;text-align:center">Tu app, por dentro</h2>
+  <div class="carrusel-track">
+    <div class="item">
+      <div class="cap"><div class="mini claro">
+        <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg></span>
+        <div class="linea media"></div><div class="linea corta"></div>
+        <span class="pastilla">Empezar</span>
+      </div></div>
+      <h4>Bienvenida</h4><p>Cero fricción, sin cuenta</p>
+    </div>
+    <div class="item">
+      <div class="cap"><div class="mini claro">
+        <div class="tarjeta" style="width:88%">
+          <span style="font-size:6.5px;font-weight:700;color:var(--accent);text-transform:uppercase">Tu única tarea</span>
+          <div class="linea corta"></div>
+        </div>
+      </div></div>
+      <h4>Primera tarea</h4><p>Tu única tarea, en grande</p>
+    </div>
+    <div class="item">
+      <div class="cap"><div class="mini oscuro">
+        <div class="anillo-mini-v">
+          <svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke-width="4" stroke="rgba(239,234,246,.15)"/><circle cx="19" cy="19" r="15" fill="none" stroke-width="4" stroke="#efeaf6" stroke-linecap="round" stroke-dasharray="94" stroke-dashoffset="30" transform="rotate(-90 19 19)"/></svg>
+          <span>18:32</span>
+        </div>
+      </div></div>
+      <h4>Enfoque activo</h4><p>Pantalla completa, sin distracción</p>
+    </div>
+    <div class="item">
+      <div class="cap"><div class="mini claro">
+        <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div class="fila-chip">
+          <div class="tarjeta" style="padding:4px 6px"><span style="font-size:8px;font-weight:700">1</span></div>
+          <div class="tarjeta" style="padding:4px 6px"><span style="font-size:8px;font-weight:700">18m</span></div>
+        </div>
+      </div></div>
+      <h4>Cierre del día</h4><p>Victoria, nunca castigo</p>
+    </div>
+    <div class="item">
+      <div class="cap"><div class="mini claro">
+        <span style="font-size:20px;font-weight:800;color:var(--accent)">12</span>
+        <span style="font-size:7px;color:var(--text-2);font-weight:700">DÍAS</span>
+        <div class="dias"><div class="dia on"></div><div class="dia on"></div><div class="dia on"></div><div class="dia on"></div><div class="dia on"></div><div class="dia"></div><div class="dia"></div></div>
+      </div></div>
+      <h4>Rachas</h4><p>Gamificación adulta</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. OFERTA -->
+<section class="wrap" id="oferta">
+  <h2 style="font-size:30px;text-align:center">Empieza gratis. Sigue por menos de un café al mes.</h2>
+  <div class="oferta-grid">
+    <div class="plan">
+      <p class="nombre">Mensual</p>
+      <p class="precio">$4.99<small>/mes</small></p>
+      <p class="total-anual">Se cobra mes a mes</p>
+      <ul>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> 5 días de prueba gratis</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> El Pase Cero Culpa completo</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> Cancela cuando quieras</li>
+      </ul>
+      <a href="#" class="btn btn-outline">Probar gratis 5 días</a>
+      <p class="garantia-mini"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Garantía de 7 días</p>
+    </div>
+    <div class="plan recomendado">
+      <span class="badge-top">2 meses gratis</span>
+      <p class="nombre">Anual</p>
+      <p class="precio">$2.91<small>/mes</small></p>
+      <p class="total-anual">Se cobra $34.99/año</p>
+      <ul>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> 5 días de prueba gratis</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> El Pase Cero Culpa completo</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> El precio más bajo del año</li>
+      </ul>
+      <a href="#" class="btn">Probar gratis 5 días</a>
+      <p class="garantia-mini"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Garantía de 7 días</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. GARANTIA -->
+<section class="wrap">
+  <div class="garantia">
+    <div class="sello"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+    <div>
+      <h2>Garantía de <span class="acento">7 días</span></h2>
+      <p>Si no sientes la calma, te devolvemos tu dinero. Sin preguntas, sin vueltas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8. FAQ -->
+<section class="wrap">
+  <h2 style="font-size:28px;text-align:center">Preguntas frecuentes</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>¿Y si la abandono como las demás?</summary>
+      <p>Esta no te pide configurar nada: abres y ya tienes tu tarea. Lo que no hagas se mueve solo — no hay nada que "mantener".</p>
+    </details>
+    <details>
+      <summary>¿Es cara por algo tan simple?</summary>
+      <p>Menos de $0.17 al día — menos de lo que ya gastaste en apps que abandonaste.</p>
+    </details>
+    <details>
+      <summary>¿Es seguro pagar con mi tarjeta?</summary>
+      <p>Se procesa por Hotmart, con PSE disponible en Colombia.</p>
+    </details>
+    <details>
+      <summary>¿Puedo cancelar cuando quiera?</summary>
+      <p>Sí, en 1 toque, cuando quieras.</p>
+    </details>
+  </div>
+</section>
+
+<!-- 9. CTA FINAL -->
+<section class="wrap">
+  <div class="cta-final">
+    <h2>Imagina cerrar hoy con <span class="acento">una sola cosa hecha</span> — y dormir en paz.</h2>
+    <div style="margin-top:26px"><a href="#oferta" class="btn">Probar gratis 5 días</a></div>
+  </div>
+</section>
+
+<!-- 10. FOOTER LEGAL -->
+<footer>
+  <div class="wrap">
+    <div>
+      <a href="terminos.html">Términos de uso</a>
+      <a href="privacidad.html">Política de privacidad</a>
+      <a href="reembolsos.html">Política de reembolsos</a>
+      <a href="mailto:hola@focuspulse.app">Contacto</a>
+    </div>
+    <div class="marca" style="font-size:13px"><span class="punto"></span>FocusPulse<span class="sufijo">TDAH</span></div>
+  </div>
+  <div class="wrap">
+    <p class="disclaimer">FocusPulse es una herramienta de organización personal y no reemplaza tratamiento médico ni diagnóstico profesional de TDAH.</p>
+  </div>
+</footer>
+
+<script>
+  // Conteo animado de las cifras héroe (baseline obligatoria #2) — respeta prefers-reduced-motion
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const counters = document.querySelectorAll('.cuenta');
+  const animarConteo = (el) => {
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    if (reduceMotion) { el.textContent = target + suffix; return; }
+    const dur = 900; const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { animarConteo(e.target); io.unobserve(e.target); } });
+  }, { threshold: 0.5 });
+  counters.forEach(c => io.observe(c));
+
+  // Stagger de entrada: .reveal solo anima cuando el scroll la trae a vista
+  const revealEls = document.querySelectorAll('.reveal');
+  if (reduceMotion) {
+    revealEls.forEach(el => el.classList.add('in-view'));
+  } else {
+    const ioReveal = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); ioReveal.unobserve(e.target); } });
+    }, { threshold: 0.2 });
+    revealEls.forEach(el => ioReveal.observe(el));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FocusPulse — Hoy</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/isotipo-192.png">
+<link rel="apple-touch-icon" href="assets/isotipo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#efeaf6; --bg-hund:#d9cdee; --surface:#ffffff; --surface-alt:#f9f6fc;
+    --text-1:#2c2638; --text-2:#65607a; --text-3:#9089a8;
+    --accent:#6e5a9e; --accent-ink:#f9f6fc; --accent-soft: color-mix(in oklab, var(--accent) 10%, white);
+    --track:#e3dcf0;
+    --radius-card:20px; --radius-btn:14px;
+    --shadow-tinta: 110 90 158;
+    --ok:#3f7a5e; --warn:#a9762b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'DM Sans',sans-serif; background:var(--bg-hund); color:var(--text-1);
+    min-height:100dvh; display:flex; justify-content:center;
+  }
+  .stage{
+    width:100%; max-width:430px; min-height:100dvh; background:
+      radial-gradient(640px 320px at 15% -8%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, #f2eef8 55%, var(--bg) 100%);
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .stage.dark{
+    background:
+      radial-gradient(520px 320px at 50% 0%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 65%),
+      linear-gradient(180deg, #342c45 0%, #241f30 55%, var(--text-1) 100%);
+    color:var(--bg);
+  }
+
+  /* Topbar de secciones (Hoy/Rachas/Perfil) */
+  .app-top{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px 4px; }
+  .app-top .brand{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; }
+  .app-top .brand .dot{ width:9px; height:9px; border-radius:999px; background:var(--accent); }
+  .app-top .brand .sufijo{ font-weight:600; color:var(--text-2); font-size:.78em; margin-left:-3px; }
+  .app-top .fecha{ font-size:12.5px; color:var(--text-2); font-weight:600; }
+
+  .content{ flex:1; padding:12px 20px 0; display:flex; flex-direction:column; min-height:0; }
+  .content.center{ justify-content:center; align-items:center; text-align:center; }
+  .content-enter{ animation:content-fade .25s cubic-bezier(.22,.9,.3,1) both; }
+  @keyframes content-fade{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+
+  /* Tab bar inferior */
+  .tabbar{ display:flex; align-items:stretch; justify-content:space-around; padding:8px 12px max(10px, env(safe-area-inset-bottom)); border-top:1px solid color-mix(in oklab, var(--text-2) 16%, transparent); background:color-mix(in oklab, var(--surface) 92%, transparent); backdrop-filter:blur(8px); }
+  .tabbar button{ display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; font-family:inherit; font-size:12px; font-weight:700; color:var(--text-2); cursor:pointer; padding:6px 10px; min-width:64px; }
+  .tabbar .chip{ display:flex; align-items:center; justify-content:center; width:38px; height:26px; border-radius:9px; }
+  .tabbar .chip svg{ width:19px; height:19px; }
+  .tabbar button.activa{ color:var(--accent); }
+  .tabbar button.activa .chip{ background:color-mix(in oklab, var(--accent) 14%, transparent); }
+
+  .reveal-item{ opacity:0; transform:translateY(10px); animation:item-in .45s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes item-in{ to{ opacity:1; transform:none; } }
+
+  .btn{ width:100%; min-height:54px; border-radius:var(--radius-btn); border:none; cursor:pointer; font-family:inherit; font-size:16px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .12s ease; box-shadow:0 10px 24px -12px rgb(var(--shadow-tinta) / 0.45); }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-light{ background:var(--bg); color:var(--text-1); }
+  .btn-ghost{ background:none; color:var(--text-2); box-shadow:none; font-weight:500; font-size:14px; min-height:44px; }
+
+  /* ---- HOY: tarea única (estado pendiente) ---- */
+  .hoy-marca{ font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+  .hoy-pregunta{ font-size:21px; font-weight:700; line-height:1.3; margin-top:6px; max-width:280px; }
+  .task-card{ width:100%; margin-top:22px; background:var(--surface); border:1px solid color-mix(in oklab, var(--accent) 16%, transparent); border-radius:var(--radius-card); padding:22px; box-shadow:0 8px 24px -14px rgb(var(--shadow-tinta) / .4); }
+  .task-card .lbl{ font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; }
+  .task-card .txt{ font-size:16px; font-weight:700; line-height:1.4; }
+  .hoy-icon-chip{ width:44px; height:44px; border-radius:14px; background:var(--bg-hund); box-shadow:inset 0 2px 5px rgb(var(--shadow-tinta) / .18); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .hoy-icon-chip svg{ width:20px; height:20px; color:var(--accent); }
+  .hoy-cta-wrap{ width:100%; margin-top:20px; }
+  .edit-link{ display:flex; align-items:center; gap:6px; justify-content:center; margin-top:14px; min-height:44px; background:none; border:none; font-family:inherit; font-size:12px; color:var(--text-2); font-weight:600; cursor:pointer; padding:8px 14px; }
+  .edit-link svg{ width:14px; height:14px; }
+  .q-icon{ width:52px; height:52px; margin-bottom:14px; position:relative; display:flex; align-items:center; justify-content:center; }
+  .q-icon svg.ring{ position:absolute; inset:0; width:52px; height:52px; }
+  .q-icon .ring-track{ fill:none; stroke:color-mix(in oklab, var(--accent) 16%, transparent); stroke-width:3; }
+  .q-icon .ring-arc{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-dasharray:160; stroke-dashoffset:160; animation:ring-draw .7s .15s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes ring-draw{ to{ stroke-dashoffset:40; } }
+  .q-icon .ico-inner{ width:18px; height:18px; color:var(--accent); position:relative; z-index:1; }
+  .dur-chips{ display:flex; gap:8px; margin-top:16px; width:100%; }
+  .dur-chip{ flex:1; min-height:44px; border-radius:999px; border:1.5px solid color-mix(in oklab, var(--text-2) 22%, transparent); background:var(--surface); font-family:inherit; font-size:12px; font-weight:600; color:var(--text-2); cursor:pointer; transition:transform .12s ease, border-color .15s ease, background .15s ease, color .15s ease; }
+  .dur-chip:active{ transform:scale(.96); }
+  .dur-chip.sel{ border-color:var(--accent); border-width:2px; background:var(--accent); color:var(--accent-ink); box-shadow:0 4px 12px -6px rgb(var(--shadow-tinta) / .5); }
+  .ft-edit-input{ width:100%; min-height:52px; border-radius:var(--radius-btn); border:1.5px solid color-mix(in oklab, var(--text-2) 25%, transparent); background:var(--surface); padding:0 16px; font-family:inherit; font-size:15.5px; color:var(--text-1); }
+  .ft-edit-input:focus{ outline:none; border-color:var(--accent); }
+  .ft-edit-error{ font-size:12.5px; color:#b4493f; margin-top:6px; font-weight:600; }
+
+  /* ---- Enfoque activo (pantalla completa invertida) ---- */
+  .focus-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; }
+  .focus-ring{ position:relative; width:188px; height:188px; }
+  .focus-ring::before{ content:""; position:absolute; inset:-30px; border-radius:999px; background:radial-gradient(circle, rgb(239 234 246 / .1), transparent 70%); }
+  .focus-ring svg{ width:100%; height:100%; transform:rotate(-90deg); position:relative; z-index:1; }
+  .focus-track{ fill:none; stroke:rgb(239 234 246 / .14); stroke-width:10; }
+  .focus-fill{ fill:none; stroke:var(--bg); stroke-width:10; stroke-linecap:round; stroke-dasharray:502; transition:stroke-dashoffset .9s cubic-bezier(.22,.9,.3,1); }
+  .focus-time{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .focus-task{ font-size:16px; font-weight:600; max-width:260px; text-align:center; }
+  .focus-exit{ display:flex; align-items:center; gap:7px; background:rgb(239 234 246 / .14); border:1px solid rgb(239 234 246 / .22); border-radius:999px; font-family:inherit; font-size:13px; font-weight:700; color:var(--bg); cursor:pointer; padding:10px 18px; opacity:.75; }
+  .focus-exit:active{ transform:scale(.96); }
+  .focus-exit svg{ width:14px; height:14px; }
+
+  /* ---- Cierre del día ---- */
+  .cierre-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
+  .cierre-wrap .ck{ width:60px; height:60px; border-radius:999px; background:color-mix(in oklab, var(--accent) 14%, transparent); display:flex; align-items:center; justify-content:center; animation:ck-spring .5s cubic-bezier(.34,1.56,.64,1) both; }
+  .cierre-wrap .ck svg{ width:28px; height:28px; color:var(--accent); }
+  @keyframes ck-spring{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .cierre-wrap .celebracion{ width:148px; height:148px; margin-bottom:-10px; animation:ck-spring .5s cubic-bezier(.34,1.56,.64,1) both; }
+  .cierre-wrap .celebracion-video{ width:132px; height:132px; border-radius:var(--radius-card); object-fit:cover; border:1px solid color-mix(in oklab, var(--accent) 20%, transparent); box-shadow:0 10px 26px -14px rgb(var(--shadow-tinta) / .45); }
+  .cierre-wrap h2{ font-size:21px; font-weight:700; max-width:280px; }
+  .cierre-wrap p{ font-size:14px; color:var(--text-2); max-width:280px; line-height:1.5; }
+  .resumen-pills{ display:flex; gap:10px; margin-top:8px; }
+  .resumen-pills .pill{ background:var(--surface); border:1px solid color-mix(in oklab, var(--text-2) 18%, transparent); border-radius:14px; padding:12px 16px; text-align:center; }
+  .resumen-pills .pill b{ display:block; font-size:19px; font-weight:800; }
+  .resumen-pills .pill span{ font-size:10.5px; color:var(--text-2); }
+  .cierre-cta{ width:100%; max-width:240px; margin-top:16px; }
+
+  /* ---- Rachas ---- */
+  .racha-head h1{ font-size:22px; font-weight:800; }
+  .racha-head p{ font-size:13px; color:var(--text-2); margin-top:3px; }
+  .racha-hero{ margin-top:18px; border-radius:var(--radius-card); background:var(--surface); border:1px solid color-mix(in oklab, var(--accent) 18%, transparent); box-shadow:0 8px 22px -14px rgb(var(--shadow-tinta) / .4); padding:22px; text-align:center; }
+  .racha-hero .num{ font-size:42px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .racha-hero .lbl{ font-size:12px; color:var(--text-2); font-weight:600; margin-top:2px; }
+  .semana-row{ display:flex; gap:7px; justify-content:center; margin-top:20px; }
+  .semana-row .dia{ width:36px; height:42px; border-radius:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:10.5px; font-weight:700; color:var(--text-3); background:var(--surface-alt); border:1px solid color-mix(in oklab, var(--text-2) 12%, transparent); }
+  .semana-row .dia.lleno{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .semana-row .dia .ini{ font-size:9px; opacity:.8; }
+  .racha-nota{ margin-top:18px; background:var(--surface-alt); border-radius:14px; padding:14px 16px; font-size:12.5px; color:var(--text-2); text-align:center; line-height:1.5; box-shadow:inset 0 2px 5px rgb(var(--shadow-tinta) / .14); }
+  .historial-mini{ margin-top:22px; }
+  .historial-mini h3{ font-size:13px; font-weight:700; color:var(--text-2); text-transform:uppercase; letter-spacing:.03em; margin-bottom:10px; }
+  .hist-item{ display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--surface); border-radius:14px; border:1px solid color-mix(in oklab, var(--text-2) 12%, transparent); margin-bottom:8px; }
+  .hist-item .d{ width:34px; height:34px; border-radius:10px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .hist-item .d svg{ width:16px; height:16px; color:var(--accent); }
+  .hist-item .tx{ flex:1; min-width:0; }
+  .hist-item .tx .t{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-item .tx .f{ font-size:11px; color:var(--text-3); margin-top:1px; }
+
+  /* ---- Perfil/Cuenta ---- */
+  .perfil-head{ display:flex; align-items:center; gap:14px; margin-top:4px; }
+  .avatar-chip{ width:52px; height:52px; border-radius:999px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; flex:0 0 auto; }
+  .perfil-head .nombre{ font-size:17px; font-weight:700; }
+  .perfil-head .correo{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .plan-card{ margin-top:20px; background:linear-gradient(165deg, var(--surface), var(--surface-alt)); border:1.5px solid var(--accent); border-radius:var(--radius-card); padding:18px; box-shadow:0 8px 22px -14px rgb(var(--shadow-tinta) / .4); }
+  .plan-card .top{ display:flex; justify-content:space-between; align-items:center; }
+  .plan-card .nombre-plan{ font-size:14px; font-weight:700; }
+  .plan-card .badge{ background:var(--accent); color:var(--accent-ink); font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em; }
+  .plan-card .precio{ font-size:12.5px; color:var(--text-2); margin-top:6px; }
+  .menu-list{ margin-top:22px; display:flex; flex-direction:column; gap:2px; }
+  .menu-item{ display:flex; align-items:center; gap:14px; padding:14px 4px; background:none; border:none; border-bottom:1px solid color-mix(in oklab, var(--text-2) 10%, transparent); font-family:inherit; font-size:14.5px; font-weight:500; color:var(--text-1); cursor:pointer; text-align:left; width:100%; }
+  .menu-item svg{ width:19px; height:19px; color:var(--text-2); flex:0 0 auto; }
+  .menu-item .chev{ margin-left:auto; width:16px; height:16px; color:var(--text-3); }
+  .menu-item.danger{ color:#b4493f; }
+  .menu-item.danger svg{ color:#b4493f; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgb(44 38 56 / 0.4); display:flex; align-items:flex-end; justify-content:center; z-index:50; opacity:0; animation:overlay-in .2s ease forwards; }
+  @keyframes overlay-in{ to{opacity:1;} }
+  .modal-card{ width:100%; max-width:430px; background:var(--surface); border-radius:var(--radius-card) var(--radius-card) 0 0; padding:24px 20px max(20px, env(safe-area-inset-bottom)); transform:translateY(24px); animation:modal-in .25s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes modal-in{ to{ transform:translateY(0); } }
+  .modal-card p{ font-size:15px; color:var(--text-1); line-height:1.5; margin:0 0 20px; font-weight:500; }
+  .modal-actions{ display:flex; flex-direction:column; gap:10px; }
+  .modal-actions .btn-ghost{ background:var(--surface-alt); min-height:52px; font-size:15px; }
+
+  .undo-toast{ position:fixed; left:50%; bottom:86px; transform:translateX(-50%); max-width:340px; width:calc(100% - 40px); background:var(--text-1); color:var(--bg); border-radius:14px; padding:13px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:13px; box-shadow:0 14px 30px -12px rgb(0 0 0 / .4); z-index:60; animation:toast-in .25s cubic-bezier(.22,.9,.3,1) both; }
+  @keyframes toast-in{ from{ opacity:0; transform:translateX(-50%) translateY(10px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
+  .undo-toast #undo-btn{ background:none; border:none; color:var(--bg); font-weight:700; font-family:inherit; font-size:13px; cursor:pointer; flex:0 0 auto; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.001s !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="app-top" id="app-top">
+    <div class="brand"><span class="dot"></span>FocusPulse<span class="sufijo">TDAH</span></div>
+    <div class="fecha" id="fecha-hoy"></div>
+  </div>
+  <div class="content" id="content"></div>
+  <div class="tabbar" id="tabbar">
+    <button class="tab-btn" data-tab="hoy">
+      <span class="chip">${'' /* placeholder, replaced by JS */}</span>
+      <span>Hoy</span>
+    </button>
+    <button class="tab-btn" data-tab="rachas">
+      <span class="chip"></span>
+      <span>Rachas</span>
+    </button>
+    <button class="tab-btn" data-tab="perfil">
+      <span class="chip"></span>
+      <span>Perfil</span>
+    </button>
+  </div>
+</div>
+
+<script>
+const ICONS = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
+  streak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4-5 5-5 10a5 5 0 0 0 10 0c0-2-1-3-1-3s-.5 2-2 2c-2 0-2-2-2-4 0-2 1-3 1-5Z"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  task: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 1 1 4.9 2.3c-.8.7-1.5 1.1-1.5 2.2"/><path d="M12 17h.01"/></svg>',
+  logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>'
+};
+function icon(n){ return ICONS[n] || ''; }
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- DATOS SEMILLA (regla 32 — la app nunca se enseña vacía) ----------
+const seed = {
+  nombre: 'Carlos',
+  correo: 'carlos.mendoza@gmail.com',
+  tareaHoy: 'Enviar la propuesta de branding a Laura',
+  horaActiva: 'Al despertar',
+  rachaDias: 12,
+  semana: [true, true, true, true, true, false, false], // L M M J V S D
+  historial: [
+    { tarea: 'Entregar moodboard al cliente nuevo', fecha: 'Ayer' },
+    { tarea: 'Responder correos atrasados', fecha: 'Hace 2 días' },
+    { tarea: 'Revisar contrato con la agencia', fecha: 'Hace 3 días' }
+  ],
+  plan: 'Anual', precioPlan: '$2.91/mes · $34.99/año', proximoCobro: '14 de agosto, 2027'
+};
+
+let estadoTareaHoy = 'pendiente'; // pendiente | enfoque | hecha
+let tabActual = 'hoy';
+let restante = 25 * 60; // 25 min demo (acelerado para la vista previa)
+let timerId = null;
+
+const DIAS_INI = ['L','M','M','J','V','S','D'];
+document.getElementById('fecha-hoy').textContent = new Date().toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short' });
+
+function setTab(tab){
+  tabActual = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('activa', b.dataset.tab===tab));
+  renderTab();
+}
+document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+  const icons = ['home','streak','user'];
+  b.querySelector('.chip').innerHTML = icon(icons[i]);
+  b.addEventListener('click', ()=> setTab(b.dataset.tab));
+});
+
+function renderTab(){
+  const content = document.getElementById('content');
+  const appTop = document.getElementById('app-top');
+  const tabbar = document.getElementById('tabbar');
+  content.innerHTML = '';
+  content.className = 'content content-enter';
+  appTop.style.display = 'flex';
+  tabbar.style.display = 'flex';
+  document.getElementById('stage').classList.remove('dark');
+
+  if(tabActual === 'hoy'){
+    if(estadoTareaHoy === 'pendiente') renderHoyPendiente(content);
+    else if(estadoTareaHoy === 'enfoque') renderEnfoque(content, appTop, tabbar);
+    else renderCierre(content);
+  } else if(tabActual === 'rachas'){
+    renderRachas(content);
+  } else {
+    renderPerfil(content);
+  }
+}
+
+let duracionElegida = (()=>{ try{ return Number(localStorage.getItem('fp_duracion')) || 25; }catch(e){ return 25; } })();
+function renderHoyPendiente(content){
+  content.classList.add('center');
+  content.innerHTML = `
+    <div class="hoy-icon-chip reveal-item">${icon('task')}</div>
+    <div class="reveal-item" style="animation-delay:40ms">
+      <p class="hoy-marca">Tu única tarea de hoy</p>
+      <h1 class="hoy-pregunta">Una sola cosa. Nada más compite por tu atención.</h1>
+    </div>
+    <div class="task-card reveal-item" style="animation-delay:90ms">
+      <p class="txt" id="task-text">${seed.tareaHoy}</p>
+    </div>
+    <div class="dur-chips reveal-item" style="animation-delay:130ms">
+      ${[15,25,45].map(m=>`<button class="dur-chip ${m===duracionElegida?'sel':''}" data-min="${m}">${m} min</button>`).join('')}
+    </div>
+    <div class="hoy-cta-wrap reveal-item" style="animation-delay:170ms">
+      <button class="btn btn-primary" id="btn-enfocar">Empezar enfoque · <span id="cta-dur">${duracionElegida}</span> min</button>
+    </div>
+    <button class="edit-link reveal-item" id="btn-editar-tarea" style="animation-delay:200ms">${icon('edit')}<span>Cambiar mi tarea</span></button>
+  `;
+  content.querySelectorAll('.dur-chip').forEach(c=> c.addEventListener('click', ()=>{
+    duracionElegida = Number(c.dataset.min);
+    try{ localStorage.setItem('fp_duracion', String(duracionElegida)); }catch(e){}
+    content.querySelectorAll('.dur-chip').forEach(x=> x.classList.toggle('sel', x===c));
+    c.style.transform = 'scale(1.06)';
+    setTimeout(()=>{ c.style.transform = ''; }, 150);
+    document.getElementById('cta-dur').textContent = duracionElegida;
+  }));
+  document.getElementById('btn-enfocar').addEventListener('click', ()=>{ estadoTareaHoy='enfoque'; restante=duracionElegida*60; renderTab(); });
+  document.getElementById('btn-editar-tarea').addEventListener('click', ()=> showEditTaskModal());
+}
+
+function showEditTaskModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <p style="margin-bottom:10px;">¿Qué es lo ÚNICO que quieres lograr ahora?</p>
+      <input type="text" id="edit-task-input" class="ft-edit-input" value="${seed.tareaHoy}" />
+      <p class="ft-edit-error" id="edit-task-error" style="display:none;">Escribe algo para continuar</p>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-primary" id="edit-task-save">Guardar</button>
+        <button class="btn btn-ghost" id="edit-task-cancel">Cancelar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const input = overlay.querySelector('#edit-task-input');
+  const err = overlay.querySelector('#edit-task-error');
+  function close(){ overlay.remove(); document.removeEventListener('keydown', onEsc); }
+  function onEsc(e){ if(e.key==='Escape') close(); }
+  document.addEventListener('keydown', onEsc);
+  overlay.querySelector('#edit-task-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+  function save(){
+    const val = input.value.trim();
+    if(!val.length){ err.style.display='block'; input.focus(); return; }
+    const saveBtn = overlay.querySelector('#edit-task-save');
+    saveBtn.textContent = 'Guardando…';
+    saveBtn.disabled = true;
+    setTimeout(()=>{
+      seed.tareaHoy = val;
+      close();
+      renderTab();
+    }, reduceMotion ? 50 : 300);
+  }
+  overlay.querySelector('#edit-task-save').addEventListener('click', save);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') save(); });
+  input.addEventListener('input', ()=>{ if(input.value.trim().length) err.style.display='none'; });
+  input.focus();
+}
+
+function renderEnfoque(content, appTop, tabbar){
+  document.getElementById('stage').classList.add('dark');
+  appTop.style.display = 'none';
+  tabbar.style.display = 'none';
+  content.classList.add('center');
+  content.innerHTML = `
+    <div class="focus-wrap">
+      <div class="focus-ring">
+        <svg viewBox="0 0 188 188"><circle class="focus-track" cx="94" cy="94" r="80"/><circle class="focus-fill" id="focus-fill" cx="94" cy="94" r="80"/></svg>
+        <div class="focus-time" id="focus-time">25:00</div>
+      </div>
+      <p class="focus-task reveal-item">${seed.tareaHoy}</p>
+      <button class="focus-exit" id="focus-exit">${icon('back')}<span>Terminar por ahora</span></button>
+    </div>
+  `;
+  const total = 25*60;
+  const circumference = 502;
+  const timeEl = document.getElementById('focus-time');
+  const fillEl = document.getElementById('focus-fill');
+  function paint(){
+    const m = String(Math.floor(restante/60)).padStart(2,'0');
+    const s = String(restante%60).padStart(2,'0');
+    timeEl.textContent = `${m}:${s}`;
+    const pct = (total-restante)/total;
+    fillEl.style.strokeDashoffset = String(circumference - circumference*pct);
+  }
+  paint();
+  // Demo acelerada: cada segundo real resta 1 minuto simulado, para poder ver el cierre pronto.
+  timerId = setInterval(()=>{
+    restante -= 60;
+    if(restante <= 0){ restante = 0; paint(); clearInterval(timerId); estadoTareaHoy='hecha'; setTimeout(renderTab, reduceMotion?50:500); return; }
+    paint();
+  }, reduceMotion ? 80 : 900);
+  document.getElementById('focus-exit').addEventListener('click', ()=>{
+    clearInterval(timerId);
+    estadoTareaHoy = 'pendiente';
+    renderTab();
+  });
+}
+
+function renderCierre(content){
+  content.classList.add('center');
+  content.innerHTML = `
+    <div class="cierre-wrap">
+      ${reduceMotion
+        ? `<img class="celebracion" src="assets/isotipo-512.png" alt="" />`
+        : `<video class="celebracion celebracion-video" autoplay muted loop playsinline poster="assets/isotipo-512.png"><source src="assets/logro.mp4" type="video/mp4"></video>`}
+
+      <h2 class="reveal-item">Hiciste lo que tenías que hacer</h2>
+      <p class="reveal-item" style="animation-delay:60ms">Lo demás ya se movió a mañana. Sin culpa, sin números rojos.</p>
+      <div class="resumen-pills reveal-item" style="animation-delay:120ms">
+        <div class="pill"><b>1</b><span>tarea hecha</span></div>
+        <div class="pill"><b>${duracionElegida}m</b><span>de enfoque</span></div>
+        <div class="pill"><b>${seed.rachaDias+1}</b><span>días de racha</span></div>
+      </div>
+      <button class="btn btn-primary cierre-cta reveal-item" id="btn-cerrar-dia" style="animation-delay:180ms">Cerrar el día</button>
+    </div>
+  `;
+  document.getElementById('btn-cerrar-dia').addEventListener('click', ()=>{
+    const tareaCerrada = seed.tareaHoy;
+    const diaIdx = new Date().getDay()===0?6:new Date().getDay()-1;
+    const yaEstabaLleno = seed.semana[diaIdx];
+    seed.historial.unshift({ tarea: tareaCerrada, fecha: 'Hoy' });
+    seed.rachaDias += 1;
+    seed.semana[diaIdx] = true;
+    seed.tareaHoy = 'Define tu próxima única tarea';
+    estadoTareaHoy = 'pendiente';
+    setTab('rachas');
+    showUndoToast('Día cerrado — guardado en tu historial', ()=>{
+      seed.historial.shift();
+      seed.rachaDias -= 1;
+      seed.semana[diaIdx] = yaEstabaLleno;
+      seed.tareaHoy = tareaCerrada;
+      estadoTareaHoy = 'hecha';
+      setTab('hoy');
+    });
+  });
+}
+
+function showUndoToast(message, onUndo){
+  const old = document.getElementById('undo-toast');
+  if(old) old.remove();
+  const toast = document.createElement('div');
+  toast.id = 'undo-toast';
+  toast.className = 'undo-toast';
+  toast.innerHTML = `<span>${message}</span><button id="undo-btn">Deshacer</button>`;
+  document.body.appendChild(toast);
+  const t = setTimeout(()=> toast.remove(), 4500);
+  toast.querySelector('#undo-btn').addEventListener('click', ()=>{
+    clearTimeout(t);
+    toast.remove();
+    onUndo();
+  });
+}
+
+function renderRachas(content){
+  content.innerHTML = `
+    <div class="racha-head reveal-item">
+      <h1>Tu racha</h1>
+      <p>Días seguidos presentándote, aunque sea con una sola tarea</p>
+    </div>
+    <div class="racha-hero reveal-item" style="animation-delay:60ms">
+      <div class="num" id="racha-num">0</div>
+      <div class="lbl">DÍAS DE CALMA SEGUIDOS</div>
+    </div>
+    <div class="semana-row reveal-item" style="animation-delay:120ms">
+      ${DIAS_INI.map((d,i)=>`<div class="dia ${seed.semana[i]?'lleno':''}"><span class="ini">${d}</span>${seed.semana[i]?icon('check'):''}</div>`).join('')}
+    </div>
+    <div class="racha-nota reveal-item" style="animation-delay:160ms">Un día sin abrir la app no rompe tu racha de verdad — solo cuenta si vuelves.</div>
+    <div class="historial-mini reveal-item" style="animation-delay:200ms">
+      <h3>Lo que ya lograste</h3>
+      ${seed.historial.slice(0,4).map(h=>`
+        <div class="hist-item">
+          <span class="d">${icon('task')}</span>
+          <div class="tx"><div class="t">${h.tarea}</div><div class="f">${h.fecha}</div></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  const numEl = content.querySelector('#racha-num');
+  const target = seed.rachaDias;
+  if(reduceMotion){ numEl.textContent = target; }
+  else{
+    const dur = 700; const start = performance.now();
+    function tick(now){
+      const t = Math.min(1, (now-start)/dur);
+      const eased = 1 - Math.pow(1-t, 3);
+      numEl.textContent = Math.round(eased*target);
+      if(t<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+}
+
+function renderPerfil(content){
+  content.innerHTML = `
+    <div class="perfil-head reveal-item">
+      <div class="avatar-chip">${seed.nombre[0]}</div>
+      <div><div class="nombre">${seed.nombre}</div><div class="correo">${seed.correo}</div></div>
+    </div>
+    <div class="plan-card reveal-item" style="animation-delay:60ms">
+      <div class="top"><span class="nombre-plan">Plan ${seed.plan}</span><span class="badge">Activo</span></div>
+      <p class="precio">${seed.precioPlan}</p>
+      <p class="precio">Próximo cobro: ${seed.proximoCobro}</p>
+    </div>
+    <div class="menu-list reveal-item" style="animation-delay:100ms">
+      <button class="menu-item" id="mi-notif">${icon('bell')}<span>Hora de tu recordatorio diario: ${seed.horaActiva}</span>${icon('chev')}</button>
+      <button class="menu-item" id="mi-pago">${icon('card')}<span>Gestionar mi suscripción</span>${icon('chev')}</button>
+      <button class="menu-item">${icon('shield')}<span>Privacidad y datos</span>${icon('chev')}</button>
+      <button class="menu-item">${icon('help')}<span>Ayuda y soporte</span>${icon('chev')}</button>
+      <button class="menu-item danger" id="mi-salir">${icon('logout')}<span>Cerrar sesión</span></button>
+    </div>
+  `;
+  document.getElementById('mi-salir').addEventListener('click', ()=> showConfirmModal('¿Seguro que quieres cerrar sesión?', 'Cerrar sesión', ()=>{
+    alert('Mockup: aquí se cerraría la sesión y volverías a /login.');
+  }));
+  document.getElementById('mi-pago').addEventListener('click', ()=>{
+    alert('Mockup: esto abriría el portal de gestión de Hotmart.');
+  });
+  document.getElementById('mi-notif').addEventListener('click', ()=>{
+    alert('Mockup: aquí elegirías una nueva hora para tu recordatorio.');
+  });
+}
+
+function showConfirmModal(message, confirmLabel, onConfirm){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <p>${message}</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modal-cancel">Seguir aquí</button>
+        <button class="btn btn-primary" id="modal-confirm" style="background:#b4493f;">${confirmLabel}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  function close(){ overlay.remove(); document.removeEventListener('keydown', onEsc); }
+  function onEsc(e){ if(e.key==='Escape') close(); }
+  document.addEventListener('keydown', onEsc);
+  overlay.querySelector('#modal-confirm').addEventListener('click', ()=>{ close(); onConfirm(); });
+  overlay.querySelector('#modal-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+}
+
+setTab('hoy');
+</script>
+</body>
+</html>

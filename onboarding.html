@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FocusPulse — Onboarding</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/isotipo-192.png">
+<link rel="apple-touch-icon" href="assets/isotipo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#efeaf6; --bg-hund:#d9cdee; --surface:#ffffff; --surface-alt:#f9f6fc;
+    --text-1:#2c2638; --text-2:#65607a; --text-3:#9089a8;
+    --accent:#6e5a9e; --accent-ink:#f9f6fc; --accent-soft: color-mix(in oklab, var(--accent) 10%, white);
+    --track:#e3dcf0;
+    --radius-card:20px; --radius-btn:14px;
+    --shadow-tinta: 110 90 158;
+    --ok:#3f7a5e; --warn:#a9762b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'DM Sans',sans-serif; background:var(--bg-hund); color:var(--text-1);
+    min-height:100dvh; display:flex; justify-content:center;
+  }
+  .stage{
+    width:100%; max-width:430px; min-height:100dvh; background:
+      radial-gradient(640px 320px at 15% -8%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, #f2eef8 55%, var(--bg) 100%);
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
+  }
+  #onb-wrap{ flex:1; display:flex; flex-direction:column; min-height:0; }
+  #screens{ flex:1; display:flex; flex-direction:column; min-height:0; }
+  .brandbar{ display:flex; align-items:center; gap:8px; padding:18px 20px 0; }
+  .brandbar .mark{ width:26px; height:26px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; }
+  .brandbar .mark svg{ width:15px; height:15px; stroke:var(--accent-ink); }
+  .brandbar span{ font-weight:700; font-size:14.5px; letter-spacing:-0.01em; }
+
+  .topbar{ display:flex; align-items:center; gap:10px; padding:18px 20px 0; }
+  .back{ width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; border:none; background:transparent; color:var(--text-2); flex:0 0 auto; cursor:pointer; opacity:1; }
+  .back[data-hidden]{ opacity:0; pointer-events:none; }
+  .back svg{ width:20px; height:20px; }
+  .progress-track{ flex:1; height:4px; border-radius:999px; background:var(--bg-hund); box-shadow:inset 0 1px 2px rgb(var(--shadow-tinta) / .18); overflow:hidden; }
+  .progress-fill{ height:100%; width:8%; border-radius:999px; background:var(--accent); transition:width .35s cubic-bezier(.22,.9,.3,1); }
+  .progress-pct{ font-size:13px; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:32px; text-align:right; }
+  .progress-step{ font-size:11.5px; color:var(--text-3); white-space:nowrap; }
+  .exit-x{ width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; border:none; background:transparent; color:var(--text-2); flex:0 0 auto; cursor:pointer; }
+  .exit-x svg{ width:18px; height:18px; }
+
+  .screen{ flex:1; display:flex; flex-direction:column; justify-content:center; padding:28px 20px max(64px, env(safe-area-inset-bottom)); position:relative; overflow:hidden; }
+  .screen.hidden{ display:none; }
+  .screen::before{
+    content:""; position:absolute; width:300px; height:300px; border-radius:999px;
+    border:1.5px solid color-mix(in oklab, var(--accent) 20%, transparent);
+    right:-110px; bottom:-90px; pointer-events:none; z-index:0;
+  }
+  .screen::after{
+    content:""; position:absolute; width:190px; height:190px; border-radius:999px;
+    border:1.5px solid color-mix(in oklab, var(--accent) 14%, transparent);
+    right:-50px; bottom:-30px; pointer-events:none; z-index:0;
+  }
+  .ring-mark{
+    position:absolute; width:56px; height:56px; border-radius:999px; right:36px; bottom:46px;
+    background:color-mix(in oklab, var(--accent) 12%, transparent); pointer-events:none; z-index:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ring-mark svg{ width:24px; height:24px; color:color-mix(in oklab, var(--accent) 55%, transparent); }
+  .screen > *{ position:relative; z-index:1; }
+  .screen-enter{ animation: screen-in .32s cubic-bezier(.16,1,.3,1) both; }
+  .screen-enter-back{ animation: screen-in-back .32s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes screen-in{ from{ opacity:0; transform:translateX(28px); } to{ opacity:1; transform:none; } }
+  @keyframes screen-in-back{ from{ opacity:0; transform:translateX(-28px); } to{ opacity:1; transform:none; } }
+
+  .q-icon{ width:64px; height:64px; margin-bottom:20px; position:relative; display:flex; align-items:center; justify-content:center; }
+  .q-icon svg.ring{ position:absolute; inset:0; width:64px; height:64px; }
+  .q-icon .ring-track{ fill:none; stroke:color-mix(in oklab, var(--accent) 16%, transparent); stroke-width:3; }
+  .q-icon .ring-arc{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-dasharray:160; stroke-dashoffset:160; animation:ring-draw .7s .15s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes ring-draw{ to{ stroke-dashoffset:40; } }
+  .q-icon .ico-inner{ width:22px; height:22px; color:var(--accent); position:relative; z-index:1; }
+  .q-head{ margin-bottom:28px; }
+  .q-title{ font-size:27px; font-weight:700; line-height:1.15; letter-spacing:-0.02em; margin:0 0 8px; }
+  .q-title .acento{ color:var(--accent); }
+  .q-sub{ font-size:13px; color:color-mix(in oklab, var(--text-1) 55%, var(--text-2)); margin:0; line-height:1.5; }
+
+  .chips{ display:flex; flex-direction:column; gap:12px; }
+  .chip{
+    display:flex; align-items:center; gap:12px; width:100%; min-height:58px; padding:14px 18px 14px 32px;
+    border-radius:var(--radius-btn); border:1px solid color-mix(in oklab, var(--accent) 14%, transparent);
+    background:var(--surface-alt); color:var(--text-1); font-family:inherit; font-size:15.5px; font-weight:500;
+    text-align:left; cursor:pointer; transition:transform .12s ease, border-color .15s ease, background .15s ease;
+    box-shadow:0 3px 10px -6px rgb(var(--shadow-tinta) / .4); position:relative;
+  }
+  .chip .kbd-hint{
+    position:absolute; top:7px; left:7px; width:16px; height:16px; border-radius:999px;
+    background:var(--bg); border:1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+    color:var(--accent); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .15s ease;
+  }
+  body.kbd-active .chip .kbd-hint{ opacity:1; }
+  .chip:active{ transform:scale(.98); }
+  .chip .ico{ width:22px; height:22px; flex:0 0 auto; color:var(--accent); opacity:.85; }
+  .chip .lbl{ flex:1; }
+  .chip .check{ width:20px; height:20px; border-radius:999px; border:1.5px solid color-mix(in oklab, var(--text-2) 30%, transparent); flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .chip .check svg{ width:12px; height:12px; opacity:0; transform:scale(.5); transition:all .18s cubic-bezier(.34,1.56,.64,1); }
+  .chip.sel{ border-color:var(--accent); border-width:1.5px; background:color-mix(in oklab, var(--accent) 9%, var(--surface-alt)); }
+  .chip.sel .check{ background:var(--accent); border-color:var(--accent); }
+  .chip.sel .check svg{ opacity:1; transform:scale(1); stroke:#fff; }
+
+  .reveal-item{ opacity:0; transform:translateY(10px); animation:item-in .45s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes item-in{ to{ opacity:1; transform:none; } }
+
+  .confetti-piece{ position:absolute; width:7px; height:10px; border-radius:2px; top:50%; left:50%; opacity:0; pointer-events:none; z-index:2; animation:confetti-burst .9s ease-out forwards; }
+  @keyframes confetti-burst{
+    0%{ opacity:1; transform:translate(-50%,-50%) rotate(0deg) scale(1); }
+    100%{ opacity:0; transform:translate(var(--cx), var(--cy)) rotate(var(--cr)) scale(.6); }
+  }
+  .undo-hint{ text-align:center; font-size:12.5px; color:var(--accent); font-weight:600; margin-top:12px; opacity:0; transition:opacity .2s ease; height:0; overflow:visible; }
+  .privacy-note{ display:flex; align-items:center; justify-content:center; gap:7px; margin-top:28px; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:500; color:var(--text-1); background:var(--bg-hund); box-shadow:inset 0 2px 5px rgb(var(--shadow-tinta) / .22); }
+  .privacy-note svg{ width:14px; height:14px; flex:0 0 auto; }
+  .freeform{ margin-top:4px; }
+  .freeform-back{ display:flex; align-items:center; gap:7px; background:none; border:none; font-family:inherit; font-size:14px; color:var(--text-1); font-weight:700; cursor:pointer; padding:10px 2px; margin-bottom:8px; }
+  .freeform-back svg{ width:17px; height:17px; color:var(--accent); }
+  .field-hint{ font-size:12.5px; color:#b4493f; margin-top:6px; }
+  .freeform input{
+    width:100%; min-height:52px; border-radius:var(--radius-btn); border:1.5px solid var(--accent);
+    background:var(--surface); padding:0 16px; font-family:inherit; font-size:15.5px; color:var(--text-1);
+  }
+  .freeform input:focus{ outline:none; }
+
+  .cta-fixed{ margin-top:auto; padding-top:20px; }
+  .btn{
+    width:100%; min-height:54px; border-radius:var(--radius-btn); border:none; cursor:pointer;
+    font-family:inherit; font-size:16px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .12s ease, opacity .15s ease; box-shadow: 0 10px 24px -12px rgb(var(--shadow-tinta) / 0.45);
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary[disabled]{ opacity:.45; box-shadow:none; pointer-events:none; }
+  .btn-outline{ background:transparent; color:var(--accent); border:1.5px solid color-mix(in oklab, var(--accent) 45%, transparent); box-shadow:none; }
+  .btn-ghost{ background:transparent; color:var(--text-2); box-shadow:none; font-weight:500; font-size:14px; min-height:44px; }
+
+  /* Reconocimiento */
+  .recog{ display:flex; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; gap:18px; }
+  .recog .visual{ width:min(100%, 280px); }
+  .mini-cal{ display:flex; gap:10px; justify-content:center; }
+  .mini-cal .day{ width:92px; border-radius:14px; padding:14px 10px; background:var(--surface); border:1px solid color-mix(in oklab, var(--accent) 14%, transparent); }
+  .mini-cal .day .tag{ font-size:11px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .mini-cal .day .t{ font-size:13px; margin-top:8px; line-height:1.4; }
+  .mini-cal .ayer .t{ text-decoration: line-through solid color-mix(in oklab, var(--accent) 55%, transparent) 2px; color:var(--text-3); }
+  .mini-cal .hoy{ border-color:var(--accent); background:color-mix(in oklab, var(--accent) 8%, var(--surface)); }
+  .mini-cal .hoy .t{ color:var(--text-1); font-weight:600; }
+  .recog h2{ font-size:24px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+  .recog p{ font-size:15px; color:var(--text-2); line-height:1.55; margin:0; max-width:320px; }
+  .recog p .acento{ color:var(--accent); font-weight:600; }
+  .recog .cta-fixed{ width:100%; margin-top:8px; }
+
+  /* Slider */
+  .slider-wrap{ flex:1; display:flex; flex-direction:column; }
+  .hero-val{ text-align:center; margin:12px 0 28px; }
+  .hero-val .num{ font-size:46px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.02em; color:var(--accent); }
+  .hero-val .lbl{ font-size:14px; color:var(--text-2); margin-top:2px; }
+  input[type=range]{ -webkit-appearance:none; width:100%; height:8px; border-radius:999px; background:var(--track); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:28px; height:28px; border-radius:999px; background:var(--surface); border:3px solid var(--accent); box-shadow:0 4px 10px -4px rgb(var(--shadow-tinta) / .5); cursor:pointer; }
+  .slider-ends{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-3); margin-top:6px; }
+  .feedback{ margin-top:22px; padding:12px 14px; border-radius:12px; background:var(--surface-alt); font-size:14px; color:var(--text-2); display:flex; align-items:center; gap:8px; }
+  .feedback svg{ width:16px; height:16px; color:var(--accent); flex:0 0 auto; }
+
+  /* Loading */
+  .loading-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; }
+  .ring-wrap{ position:relative; width:112px; height:112px; }
+  .ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--track); stroke-width:9; }
+  .ring-fill{ fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; stroke-dasharray:301; stroke-dashoffset:301; transition:stroke-dashoffset .5s cubic-bezier(.22,.9,.3,1); }
+  .ring-pct{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .load-title{ font-size:21px; font-weight:700; letter-spacing:-0.01em; }
+  .load-lines-card{ width:100%; background:var(--surface-alt); border-radius:var(--radius-card); padding:18px; box-shadow:0 3px 10px -6px rgb(var(--shadow-tinta) / .4); }
+  .load-skip{ background:none; border:none; font-family:inherit; font-size:13px; color:var(--text-3); cursor:pointer; padding:8px 12px; align-items:center; gap:6px; }
+  .load-lines{ width:100%; display:flex; flex-direction:column; gap:16px; }
+  .load-line{ display:flex; align-items:center; gap:12px; opacity:.4; transition:opacity .25s ease; }
+  .load-line.active, .load-line.done{ opacity:1; }
+  .load-line .dot{ width:22px; height:22px; border-radius:999px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border:1.5px solid color-mix(in oklab, var(--text-2) 30%, transparent); }
+  .load-line.active .dot{ border-color:var(--accent); background:color-mix(in oklab, var(--accent) 16%, transparent); position:relative; }
+  .load-line.active .dot::after{ content:""; width:8px; height:8px; border-radius:999px; background:var(--accent); animation:pulse-dot 1s ease-in-out infinite; }
+  @keyframes pulse-dot{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .load-line.done .dot{ background:var(--accent); border-color:var(--accent); }
+  .load-line.done .dot svg{ width:12px; height:12px; stroke:#fff; }
+  .load-line .txt{ font-size:14.5px; color:var(--text-1); }
+
+  /* Paywall */
+  .pay-close{ display:flex; justify-content:flex-start; padding:16px 16px 0; }
+  .pay-close button{ width:44px; height:44px; border:none; background:transparent; color:var(--text-2); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .pay-close svg{ width:20px; height:20px; }
+  .pay-body{ padding:4px 20px 24px; display:flex; flex-direction:column; gap:20px; }
+  .pay-head h1{ font-size:27px; font-weight:700; line-height:1.18; letter-spacing:-0.02em; margin:0 0 6px; }
+  .pay-head h1 .acento{ color:var(--accent); }
+  .pay-head .sub{ font-size:14px; color:var(--text-2); }
+  .value-stack{ background:var(--surface); border-radius:var(--radius-card); padding:18px; border:1px solid color-mix(in oklab, var(--accent) 12%, transparent); display:flex; flex-direction:column; gap:14px; }
+  .value-item{ display:flex; align-items:center; gap:12px; font-size:14.5px; }
+  .value-item .ck{ width:24px; height:24px; border-radius:999px; background:color-mix(in oklab, var(--accent) 12%, transparent); flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+  .value-item .ck svg{ width:13px; height:13px; stroke:var(--accent); }
+
+  .plans{ display:flex; flex-direction:column; gap:12px; }
+  .plan{ position:relative; border-radius:var(--radius-card); padding:16px 18px; border:1.5px solid color-mix(in oklab, var(--text-2) 16%, transparent); background:var(--surface); cursor:pointer; box-shadow:0 6px 16px -10px rgb(var(--shadow-tinta) / .35); transition:transform .12s ease; }
+  .plan:active{ transform:scale(.98); }
+  .plan.rec{ border-color:var(--accent); border-width:2px; background:color-mix(in oklab, var(--accent) 7%, var(--surface)); }
+  .plan .badge{ position:absolute; top:-11px; left:16px; background:var(--accent); color:var(--accent-ink); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:4px 10px; border-radius:7px; }
+  .plan-row{ display:flex; justify-content:space-between; align-items:baseline; }
+  .plan-name{ font-size:14.5px; font-weight:600; }
+  .plan-price{ font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .plan-sub{ font-size:12.5px; color:var(--text-2); margin-top:4px; }
+
+  .timeline{ display:flex; flex-direction:column; }
+  .t-item{ display:flex; gap:12px; }
+  .t-rail{ display:flex; flex-direction:column; align-items:center; }
+  .t-node{ width:13px; height:13px; border-radius:999px; flex:0 0 auto; margin-top:3px; }
+  .t-node.fill{ background:var(--accent); }
+  .t-node.outline{ background:var(--surface); border:2px solid var(--accent); }
+  .t-line{ width:2px; flex:1; background:var(--accent); min-height:28px; }
+  .t-line.neutral{ background:var(--track); }
+  .t-content{ padding-bottom:18px; }
+  .t-content .tt{ font-size:14.5px; font-weight:600; }
+  .t-content .tc{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+
+  .trust3{ display:flex; flex-direction:column; gap:7px; align-items:center; }
+  .trust3 .row{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-2); }
+  .trust3 svg{ width:14px; height:14px; color:var(--accent); flex:0 0 auto; }
+
+  .exit-row{ display:flex; justify-content:center; gap:18px; }
+  .exit-row button{ background:none; border:none; font-family:inherit; font-size:13.5px; color:var(--text-3); cursor:pointer; min-height:44px; }
+  .restore-msg{ font-size:12.5px; color:var(--text-2); text-align:center; background:var(--surface-alt); border-radius:12px; padding:10px 14px; margin:-4px 0 4px; }
+
+  .trustrow-final{ display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--text-3); padding-bottom:8px; }
+  .trustrow-final svg{ width:14px; height:14px; }
+
+  /* Login */
+  .login-wrap{ flex:1; display:flex; flex-direction:column; padding-top:12px; }
+  .login-head{ text-align:left; margin-bottom:28px; }
+  .login-head h1{ font-size:25px; font-weight:700; margin:0 0 8px; letter-spacing:-0.01em; }
+  .login-head p{ font-size:14.5px; color:var(--text-2); margin:0; line-height:1.5; }
+  .field{ margin-bottom:14px; }
+  .field input{ width:100%; min-height:52px; border-radius:var(--radius-btn); border:1.5px solid color-mix(in oklab, var(--text-2) 25%, transparent); background:var(--surface); padding:0 16px; font-family:inherit; font-size:15.5px; color:var(--text-1); }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+  .btn-google{ display:flex; align-items:center; justify-content:center; gap:10px; }
+  .btn-google svg{ width:18px; height:18px; }
+  .divider{ display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--text-3); font-size:12.5px; }
+  .divider::before,.divider::after{ content:""; flex:1; height:1px; background:var(--track); }
+  .caption-lock{ display:flex; align-items:center; justify-content:center; gap:6px; font-size:12.5px; color:var(--text-3); margin-top:16px; }
+  .caption-lock svg{ width:14px; height:14px; }
+  .sent-box{ text-align:center; padding:28px 0; }
+  .sent-box .ico{ width:56px; height:56px; border-radius:999px; background:color-mix(in oklab, var(--accent) 12%, transparent); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .sent-box .ico svg{ width:26px; height:26px; color:var(--accent); }
+  .sent-box h2{ font-size:19px; margin:0 0 6px; }
+  .sent-box p{ font-size:14px; color:var(--text-2); margin:0; }
+  .resend{ margin-top:18px; font-size:13px; color:var(--text-3); background:none; border:none; font-family:inherit; }
+  .restart-link{ display:flex; align-items:center; gap:6px; margin:10px auto 0; font-size:13px; color:var(--accent); font-weight:600; background:none; border:none; font-family:inherit; cursor:pointer; padding:8px; }
+  .restart-link svg{ width:14px; height:14px; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgb(44 38 56 / 0.4); display:flex; align-items:flex-end; justify-content:center; z-index:50; opacity:0; animation:overlay-in .2s ease forwards; }
+  .modal-overlay.closing{ animation:overlay-out .18s ease forwards; }
+  @keyframes overlay-in{ to{opacity:1;} }
+  @keyframes overlay-out{ to{opacity:0;} }
+  .modal-card{ width:100%; max-width:430px; background:var(--surface); border-radius:var(--radius-card) var(--radius-card) 0 0; padding:24px 20px max(20px, env(safe-area-inset-bottom)); transform:translateY(24px); animation:modal-in .25s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes modal-in{ to{ transform:translateY(0); } }
+  .modal-card p{ font-size:15px; color:var(--text-1); line-height:1.5; margin:0 0 20px; font-weight:500; }
+  .modal-actions{ display:flex; flex-direction:column; gap:10px; }
+  .modal-actions .btn-ghost{ background:var(--surface-alt); min-height:52px; font-size:15px; }
+
+  /* Primera tarea (captura la tarea real del usuario) */
+  .ft-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; }
+  .ft-icon{ width:52px; height:52px; border-radius:999px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; }
+  .ft-icon svg{ width:26px; height:26px; color:var(--accent); }
+  .ft-marca{ font-size:12.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); margin:0; }
+  .ft-wrap h1{ font-size:24px; font-weight:700; line-height:1.25; margin:0; letter-spacing:-0.01em; max-width:300px; }
+  .ft-input{ width:100%; min-height:56px; border-radius:var(--radius-btn); border:1.5px solid color-mix(in oklab, var(--text-2) 25%, transparent); background:var(--surface); padding:0 18px; font-family:inherit; font-size:16px; color:var(--text-1); text-align:center; box-shadow:0 4px 14px -8px rgb(var(--shadow-tinta) / .4); transition:border-color .15s ease; }
+  .ft-input:focus{ outline:none; border-color:var(--accent); border-width:1.5px; }
+  .ft-input.error{ border-color:#b4493f; }
+  .ft-help{ font-size:13px; color:var(--text-2); margin:0; transition:color .15s ease; }
+  .ft-help.error{ color:#9a3a30; font-weight:600; }
+  .ft-card{ width:100%; background:var(--surface); border:1px solid color-mix(in oklab, var(--accent) 14%, transparent); border-radius:var(--radius-card); padding:22px 20px; display:flex; flex-direction:column; gap:14px; box-shadow:0 6px 18px -8px rgb(var(--shadow-tinta) / .45); }
+  .ft-cta-dim{ opacity:.55; }
+  .ft-cta-wrap{ width:100%; margin-top:4px; }
+
+  /* Enfoque activo (demo del mecanismo, pantalla invertida) */
+  .screen-dark{
+    background:
+      radial-gradient(520px 320px at 50% 0%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 65%),
+      linear-gradient(180deg, #342c45 0%, #241f30 55%, var(--text-1) 100%) !important;
+    color:var(--bg);
+  }
+  .screen-dark::before, .screen-dark::after{ border-color:color-mix(in oklab, var(--bg) 14%, transparent); }
+  .fd-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; text-align:center; }
+  .fd-ring{ position:relative; width:168px; height:168px; }
+  .fd-ring::before{ content:""; position:absolute; inset:-28px; border-radius:999px; background:radial-gradient(circle, rgb(239 234 246 / 0.10), transparent 70%); }
+  .fd-ring svg{ width:100%; height:100%; transform:rotate(-90deg); position:relative; z-index:1; }
+  .fd-ring-track{ fill:none; stroke:rgb(239 234 246 / 0.14); stroke-width:10; }
+  .fd-ring-fill{ fill:none; stroke:var(--bg); stroke-width:10; stroke-linecap:round; stroke-dasharray:402; transition:stroke-dashoffset .9s cubic-bezier(.22,.9,.3,1); }
+  .fd-pause{ display:flex; align-items:center; gap:7px; background:rgb(239 234 246 / 0.14); border:1px solid rgb(239 234 246 / 0.22); border-radius:999px; font-family:inherit; font-size:13px; font-weight:700; color:var(--bg); cursor:pointer; padding:10px 18px; opacity:.75; pointer-events:auto; transition:opacity .25s ease, transform .12s ease; margin-top:6px; }
+  .fd-pause.show{ opacity:1; }
+  .fd-pause:active{ transform:scale(.96); }
+  .fd-pause svg{ width:14px; height:14px; }
+  .fd-task-card{ background:rgb(239 234 246 / 0.06); border-radius:var(--radius-card); padding:14px 20px; box-shadow:inset 0 1px 3px rgb(0 0 0 / .2); }
+  .fd-time{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-0.02em; }
+  .fd-task{ font-size:17px; font-weight:600; max-width:280px; }
+  .fd-sub{ font-size:13px; color:rgb(239 234 246 / 0.6); margin:0; }
+  .fd-done{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .fd-done .ck{ width:52px; height:52px; border-radius:999px; background:rgb(239 234 246 / 0.12); display:flex; align-items:center; justify-content:center; animation:ck-spring .5s cubic-bezier(.34,1.56,.64,1) both; }
+  @keyframes ck-spring{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .fd-done .ck svg{ width:26px; height:26px; color:var(--bg); }
+  .fd-done p{ font-size:16px; font-weight:600; margin:0; max-width:260px; }
+  .btn-light{ background:var(--bg); color:var(--text-1); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.001s !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- ONBOARDING CONTAINER -->
+  <div id="onb-wrap">
+    <div class="topbar" id="onb-topbar">
+      <button class="back" id="btn-back" aria-label="Atrás">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-step" id="progress-step"></div>
+      </div>
+      <div class="progress-pct" id="progress-pct" aria-live="polite">8%</div>
+      <button class="exit-x" id="btn-exit" aria-label="Salir del recorrido">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="screens"></div>
+  </div>
+
+</div>
+
+<script>
+const ICONS = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L2.8 17a1.8 1.8 0 0 0 1.6 2.7h15.2a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  coffee: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a3 3 0 1 1 0 6h-1"/><path d="M2 8h16v6a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>',
+  shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
+  layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+  circle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  google: '<svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.2s2.7-6.2 6-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.2 14.7 2.2 12 2.2 6.9 2.2 2.8 6.3 2.8 11.4s4.1 9.2 9.2 9.2c5.3 0 8.8-3.7 8.8-9 0-.6-.07-1.1-.16-1.5H12Z"/></svg>'
+};
+function icon(name){ return ICONS[name] || ''; }
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+document.addEventListener('keydown', (e)=>{ if(e.key==='Tab') document.body.classList.add('kbd-active'); }, {once:true});
+
+const answers = { p1:null, p2:null, p3:3, p4:null };
+
+const screens = [
+  { id:'p1', type:'question', pct:8, icon:'alert',
+    title:'¿Cuál es tu mayor fuente de parálisis hoy?',
+    sub:'Esto decide qué tanto simplificamos tu primer día',
+    key:'p1', multi:false,
+    chips:[
+      {icon:'alert', label:'Listas con fechas en rojo'},
+      {icon:'layers', label:'Demasiadas tareas a la vez'},
+      {icon:'shuffle', label:'Empiezo y no termino nada'},
+      {icon:'edit', label:'Otra cosa (escribe la tuya)', freeform:true}
+    ]
+  },
+  { id:'p2', type:'question', pct:24, icon:'moon',
+    title:'¿En qué momento del día más se te apaga el cerebro?',
+    sub:null, key:'p2', multi:false,
+    chips:[
+      {icon:'sun', label:'Al despertar'},
+      {icon:'coffee', label:'Después de almorzar'},
+      {icon:'moon', label:'En la noche'},
+      {icon:'shuffle', label:'Varía cada día'}
+    ]
+  },
+  { id:'r1', type:'recog', pct:38,
+    title:'No es falta de voluntad',
+    bodyFn: () => 'Ese bloqueo no es tuyo — es el diseño de listas que <b>castigan</b> lo que no hiciste. <span class="acento">El Pase Cero Culpa</span> está pensado justo para eso.',
+    cta:'Continuar'
+  },
+  { id:'p3', type:'slider', pct:55, icon:'spark',
+    title:'¿Cuántos días a la semana quieres usar FocusPulse?',
+    key:'p3', min:1, max:7, unit:'días/semana',
+    cta:'Fijar mi meta'
+  },
+  { id:'p4', type:'question', pct:72, icon:'file',
+    title:'¿Ya intentaste otras apps de productividad?',
+    sub:null, key:'p4', multi:false,
+    chips:[
+      {icon:'file', label:'Sí, Notion/Todoist/Trello… y las abandoné'},
+      {icon:'book', label:'Agenda de papel'},
+      {icon:'circle', label:'Nunca probé ninguna'},
+      {icon:'edit', label:'Otra cosa (escribe la tuya)', freeform:true}
+    ]
+  },
+  { id:'r2', type:'recog', pct:88,
+    title:'Tus respuestas te describen',
+    bodyFn: () => 'No es que tu cerebro sea "un caso perdido" — ya probaste herramientas que te pedían configurar todo antes de darte nada. <span class="acento">El Pase Cero Culpa</span> hace lo contrario: una sola tarea, cero configuración, y lo que no hagas se mueve solo a mañana.',
+    cta:'Probarlo ahora', final:true
+  },
+  { id:'firsttask', type:'firsttask', pct:94 },
+  { id:'focusdemo', type:'focusdemo', pct:97 },
+  { id:'load', type:'loading', pct:100 },
+  { id:'pay', type:'paywall', pct:100 },
+  { id:'login', type:'login', pct:100 }
+];
+
+let idx = 0;
+let history = [];
+const screensEl = document.getElementById('screens');
+const progressFill = document.getElementById('progress-fill');
+const progressPct = document.getElementById('progress-pct');
+const progressStep = document.getElementById('progress-step');
+const topbar = document.getElementById('onb-topbar');
+const backBtn = document.getElementById('btn-back');
+const questionIds = screens.filter(s=> s.type==='question' || s.type==='slider').map(s=>s.id);
+
+let currentPct = 0;
+function setProgress(pct){
+  progressFill.style.width = pct + '%';
+  if(reduceMotion){ progressPct.textContent = pct + '%'; currentPct = pct; return; }
+  const from = currentPct;
+  const to = pct;
+  currentPct = pct;
+  const dur = 350;
+  const start = performance.now();
+  function tick(now){
+    const t = Math.min(1, (now-start)/dur);
+    const val = Math.round(from + (to-from)*t);
+    progressPct.textContent = val + '%';
+    if(t<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function go(newIdx, fromBack){
+  if(!fromBack) history.push(idx);
+  idx = newIdx;
+  render('forward');
+}
+
+function goBack(){
+  if(history.length === 0) return;
+  idx = history.pop();
+  render('back');
+}
+backBtn.addEventListener('click', goBack);
+document.getElementById('btn-exit').addEventListener('click', ()=>{
+  showConfirmModal('¿Salir del recorrido? Tus respuestas no se guardarán.', 'Salir', ()=>{
+    window.location.href = 'landing.html';
+  });
+});
+
+function render(direction){
+  const s = screens[idx];
+  setProgress(s.pct);
+  const qPos = questionIds.indexOf(s.id);
+  progressStep.textContent = qPos >= 0 ? `Pregunta ${qPos+1} de ${questionIds.length}` : '';
+  const hiddenTopbarTypes = ['loading','paywall','login','focusdemo'];
+  topbar.style.display = hiddenTopbarTypes.includes(s.type) ? 'none' : 'flex';
+  backBtn.toggleAttribute('data-hidden', idx===0);
+  if(window.__onKeyNumCleanup) window.__onKeyNumCleanup();
+  screensEl.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'screen' + (direction==='back' ? ' screen-enter-back' : (direction ? ' screen-enter' : ''));
+  screensEl.appendChild(wrap);
+
+  if(['paywall','login','firsttask','focusdemo'].includes(s.type)) wrap.style.justifyContent = 'flex-start';
+  if(s.type === 'focusdemo') wrap.classList.add('screen-dark');
+
+  if(s.type === 'question') renderQuestion(wrap, s);
+  else if(s.type === 'recog') renderRecog(wrap, s);
+  else if(s.type === 'slider') renderSlider(wrap, s);
+  else if(s.type === 'loading') renderLoading(wrap, s);
+  else if(s.type === 'paywall') renderPaywall(wrap, s);
+  else if(s.type === 'login') renderLogin(wrap, s);
+  else if(s.type === 'firsttask') renderFirstTask(wrap, s);
+  else if(s.type === 'focusdemo') renderFocusDemo(wrap, s);
+}
+
+function renderQuestion(wrap, s){
+  if(s.icon){
+    const qi = document.createElement('div');
+    qi.className = 'q-icon reveal-item';
+    qi.innerHTML = `<svg class="ring" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-arc" cx="32" cy="32" r="27"/></svg><span class="ico-inner">${icon(s.icon)}</span>`;
+    wrap.appendChild(qi);
+  }
+  const head = document.createElement('div');
+  head.className = 'q-head reveal-item';
+  head.style.animationDelay = '40ms';
+  head.innerHTML = `<h1 class="q-title">${s.title}</h1>` + (s.sub ? `<p class="q-sub">${s.sub}</p>` : '');
+  wrap.appendChild(head);
+
+  const chipsWrap = document.createElement('div');
+  chipsWrap.className = 'chips';
+  s.chips.forEach((c, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'chip reveal-item';
+    btn.style.animationDelay = (i*60)+'ms';
+    btn.innerHTML = `<span class="kbd-hint">${i+1}</span><span class="ico">${icon(c.icon)}</span><span class="lbl">${c.label}</span><span class="check">${icon('check')}</span>`;
+    if(!c.freeform && answers[s.key] === (c.labelReal || c.label)) btn.classList.add('sel');
+    btn.addEventListener('click', ()=> selectChip(s, c, btn, chipsWrap));
+    chipsWrap.appendChild(btn);
+  });
+  wrap.appendChild(chipsWrap);
+
+  if(s.freeformKey){
+    renderFreeformField(wrap, s, chipsWrap);
+  } else {
+    const note = document.createElement('div');
+    note.className = 'privacy-note reveal-item';
+    note.style.animationDelay = (s.chips.length*60 + 80)+'ms';
+    note.innerHTML = `${icon('lock')}<span>Tus respuestas son privadas — nunca se comparten</span>`;
+    wrap.appendChild(note);
+  }
+
+  function onKeyNum(e){
+    const n = Number(e.key);
+    if(n>=1 && n<=s.chips.length){
+      chipsWrap.querySelectorAll('.chip')[n-1]?.click();
+      document.removeEventListener('keydown', onKeyNum);
+    }
+  }
+  document.addEventListener('keydown', onKeyNum);
+  window.__onKeyNumCleanup = ()=> document.removeEventListener('keydown', onKeyNum);
+}
+
+function renderFreeformField(wrap, s, chipsWrap){
+  const ff = document.createElement('div');
+  ff.className = 'freeform reveal-item';
+  ff.style.marginTop = '14px';
+  ff.innerHTML = `<button type="button" class="freeform-back">${icon('back') || '←'}<span>Volver a las opciones</span></button><input type="text" placeholder="Escribe aquí…" /><div class="field-hint" style="display:none;">Escribe algo para continuar</div>`;
+  wrap.appendChild(ff);
+  const backBtnLocal = ff.querySelector('.freeform-back');
+  backBtnLocal.addEventListener('click', ()=>{
+    ff.remove();
+    const ctaEl = wrap.querySelector('.cta-fixed');
+    if(ctaEl) ctaEl.remove();
+    if(chipsWrap){
+      chipsWrap.querySelectorAll('.chip').forEach(b=>{
+        b.disabled = false;
+        b.classList.remove('sel');
+        b.style.opacity = '';
+        b.style.maxHeight = '';
+        b.style.marginBottom = '';
+        b.style.paddingTop = '';
+        b.style.paddingBottom = '';
+        b.style.overflow = '';
+        b.style.pointerEvents = '';
+      });
+    }
+  });
+  const cta = document.createElement('div');
+  cta.className = 'cta-fixed';
+  cta.innerHTML = `<button class="btn btn-primary">Continuar</button>`;
+  wrap.appendChild(cta);
+  const input = ff.querySelector('input');
+  const hint = ff.querySelector('.field-hint');
+  const btn = cta.querySelector('button');
+  function trySubmit(){
+    if(input.value.trim().length === 0){
+      input.focus({preventScroll:true});
+      input.style.borderColor = '#b4493f';
+      hint.style.display = 'block';
+      setTimeout(()=>{ input.style.borderColor = ''; }, 900);
+      return;
+    }
+    answers[s.key] = input.value.trim();
+    advanceFrom(s);
+  }
+  btn.addEventListener('click', trySubmit);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') trySubmit(); });
+  input.addEventListener('input', ()=>{ if(input.value.trim().length) hint.style.display='none'; });
+  input.focus({preventScroll:true});
+}
+
+function selectChip(s, c, btn, chipsWrap){
+  if(c.freeform){
+    chipsWrap.querySelectorAll('.chip').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+    renderFreeformField(btn.closest('.screen'), {...s, freeformKey:s.key}, chipsWrap);
+    btn.parentNode.querySelectorAll('.chip').forEach(b=>{
+      if(b!==btn){
+        b.style.transition = 'opacity .2s ease, max-height .2s ease, margin .2s ease, padding .2s ease';
+        b.style.opacity = '0';
+        b.style.maxHeight = '0px';
+        b.style.marginBottom = '0px';
+        b.style.paddingTop = '0px';
+        b.style.paddingBottom = '0px';
+        b.style.overflow = 'hidden';
+        b.style.pointerEvents = 'none';
+      }
+    });
+    return;
+  }
+  chipsWrap.querySelectorAll('.chip').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  answers[s.key] = c.labelReal || c.label;
+  let undoHint = chipsWrap.parentNode.querySelector('.undo-hint');
+  if(!undoHint){
+    undoHint = document.createElement('div');
+    undoHint.className = 'undo-hint';
+    chipsWrap.insertAdjacentElement('afterend', undoHint);
+  }
+  undoHint.textContent = 'Toca otra opción para cambiar';
+  undoHint.style.opacity = '1';
+  setTimeout(()=>{
+    if(btn.classList.contains('sel')){
+      chipsWrap.querySelectorAll('.chip').forEach(b=> b.disabled = true);
+      undoHint.style.opacity = '0';
+      advanceFrom(s);
+    }
+  }, reduceMotion ? 60 : 900);
+}
+
+function advanceFrom(s){
+  const curIdx = screens.findIndex(x=>x.id===s.id);
+  go(curIdx+1);
+}
+
+function spawnConfetti(wrap){
+  if(reduceMotion) return;
+  const colors = ['var(--accent)', 'color-mix(in oklab, var(--accent) 60%, #e8b84b)', 'color-mix(in oklab, var(--accent) 40%, white)'];
+  for(let i=0;i<14;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    const angle = (Math.random()*360) * Math.PI/180;
+    const dist = 60 + Math.random()*90;
+    p.style.setProperty('--cx', (Math.cos(angle)*dist)+'px');
+    p.style.setProperty('--cy', (Math.sin(angle)*dist - 40)+'px');
+    p.style.setProperty('--cr', (Math.random()*360)+'deg');
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = (Math.random()*120)+'ms';
+    wrap.appendChild(p);
+  }
+}
+
+function renderRecog(wrap, s){
+  wrap.classList.add('recog-screen');
+  if(s.final) spawnConfetti(wrap);
+  const box = document.createElement('div');
+  box.className = 'recog';
+  box.innerHTML = `
+    <div class="visual reveal-item">
+      <div class="mini-cal">
+        <div class="day ayer"><div class="tag">Ayer</div><div class="t">Revisar propuesta</div></div>
+        <div class="day hoy"><div class="tag">Hoy</div><div class="t">Enfocarte en 1 cosa</div></div>
+      </div>
+    </div>
+    <h2 class="reveal-item" style="animation-delay:80ms">${s.title}</h2>
+    <p class="reveal-item" style="animation-delay:140ms">${s.bodyFn()}</p>
+  `;
+  wrap.appendChild(box);
+  const cta = document.createElement('div');
+  cta.className = 'cta-fixed reveal-item';
+  cta.style.animationDelay = '200ms';
+  cta.innerHTML = `<button class="btn btn-primary">${s.cta}</button>`;
+  wrap.appendChild(cta);
+  cta.querySelector('button').addEventListener('click', ()=> advanceFrom(s));
+}
+
+function renderSlider(wrap, s){
+  if(s.icon){
+    const qi = document.createElement('div');
+    qi.className = 'q-icon reveal-item';
+    qi.innerHTML = `<svg class="ring" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-arc" cx="32" cy="32" r="27"/></svg><span class="ico-inner">${icon(s.icon)}</span>`;
+    wrap.appendChild(qi);
+  }
+  const head = document.createElement('div');
+  head.className = 'q-head reveal-item';
+  head.style.animationDelay = '70ms';
+  head.innerHTML = `<h1 class="q-title">${s.title}</h1>`;
+  wrap.appendChild(head);
+
+  const sw = document.createElement('div');
+  sw.className = 'slider-wrap reveal-item';
+  sw.style.animationDelay = '140ms';
+  sw.innerHTML = `
+    <div class="hero-val"><div class="num" id="slider-num">${answers.p3}</div><div class="lbl">${s.unit}</div></div>
+    <input type="range" min="${s.min}" max="${s.max}" value="${answers.p3}" id="range-input" />
+    <div class="slider-ends"><span>${s.min}</span><span>${s.max}</span></div>
+    <div class="feedback" id="slider-feedback">${icon('spark')}<span>Meta realista para empezar</span></div>
+    <div class="cta-fixed"><button class="btn btn-primary">${s.cta}</button></div>
+  `;
+  wrap.appendChild(sw);
+  const range = sw.querySelector('#range-input');
+  const num = sw.querySelector('#slider-num');
+  const fb = sw.querySelector('#slider-feedback span');
+  function updateFeedback(v){
+    if(v<=2) fb.textContent = 'Arrancar suave está bien';
+    else if(v<=5) fb.textContent = 'Meta realista para empezar';
+    else fb.textContent = 'Ambiciosa — te acompañamos';
+  }
+  updateFeedback(answers.p3);
+  range.addEventListener('input', ()=>{ num.textContent = range.value; answers.p3 = Number(range.value); updateFeedback(answers.p3); });
+  sw.querySelector('.btn-primary').addEventListener('click', ()=> advanceFrom(s));
+}
+
+function renderLoading(wrap, s){
+  wrap.style.padding = '40px 20px';
+  const lines = [
+    () => `Analizando tu bloqueo: <b>${answers.p1 || 'listas con fechas en rojo'}</b>`,
+    () => `Ajustando tu horario de enfoque: <b>${answers.p2 || 'al despertar'}</b>`,
+    () => `Fijando tu meta de <b>${answers.p3} días/semana</b>`,
+    () => `Guardando tu primera tarea: <b>${answers.firstTask || 'tu tarea'}</b>`
+  ];
+  wrap.innerHTML = `
+    <div class="loading-wrap">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120"><circle class="ring-track" cx="60" cy="60" r="48"/><circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="48"/></svg>
+        <div class="ring-pct" id="ring-pct">0%</div>
+      </div>
+      <div class="load-title">Construyendo tu plan…</div>
+      <div class="load-lines-card"><div class="load-lines" id="load-lines"></div></div>
+      <button class="load-skip" id="load-skip" style="display:none;">Saltar</button>
+    </div>
+  `;
+  const linesEl = wrap.querySelector('#load-lines');
+  lines.forEach((fn)=>{
+    const el = document.createElement('div');
+    el.className = 'load-line';
+    el.innerHTML = `<span class="dot"></span><span class="txt">${fn()}</span>`;
+    linesEl.appendChild(el);
+  });
+  const ringFill = wrap.querySelector('#ring-fill');
+  const ringPct = wrap.querySelector('#ring-pct');
+  const circumference = 301;
+  const items = linesEl.querySelectorAll('.load-line');
+  const steps = [20, 45, 72, 100];
+  let i = 0;
+  let curPct = 0;
+  let finished = false;
+  function animatePct(to){
+    const from = curPct;
+    curPct = to;
+    if(reduceMotion){ ringPct.textContent = to + '%'; return; }
+    const dur = 400;
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min(1, (now-start)/dur);
+      ringPct.textContent = Math.round(from + (to-from)*t) + '%';
+      if(t<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  function runStep(){
+    if(i>0) items[i-1].classList.remove('active');
+    if(i>0){ items[i-1].classList.add('done'); items[i-1].querySelector('.dot').innerHTML = icon('check'); }
+    if(i < items.length){
+      items[i].classList.add('active');
+      const pct = steps[i];
+      ringFill.style.strokeDashoffset = circumference - (circumference*pct/100);
+      animatePct(pct);
+      i++;
+      setTimeout(runStep, reduceMotion ? 80 : 900);
+    } else {
+      finished = true;
+      setTimeout(()=>{ advanceFrom(s); }, reduceMotion ? 80 : 500);
+    }
+  }
+  setTimeout(runStep, reduceMotion ? 50 : 400);
+
+  const skipBtn = wrap.querySelector('#load-skip');
+  setTimeout(()=>{ if(!finished) skipBtn.style.display = 'inline-flex'; }, 1800);
+  skipBtn.addEventListener('click', ()=>{ if(!finished){ finished = true; advanceFrom(s); } });
+}
+
+function renderFirstTask(wrap, s){
+  wrap.innerHTML = `
+    <div class="ft-wrap">
+      <div class="q-icon reveal-item" style="margin-bottom:0;">
+        <svg class="ring" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-arc" cx="32" cy="32" r="27"/></svg>
+        <span class="ico-inner">${icon('circle')}</span>
+      </div>
+      <p class="ft-marca reveal-item" style="animation-delay:40ms">FocusPulse</p>
+      <div class="ft-card reveal-item" style="animation-delay:80ms">
+        <h1>¿Qué es lo ÚNICO que tienes que hacer ahora?</h1>
+        <input type="text" class="ft-input" placeholder="Ej. Enviar el diseño al cliente" />
+        <p class="ft-help" id="ft-help">Solo esto. Lo demás puede esperar.</p>
+      </div>
+      <div class="ft-cta-wrap reveal-item" style="animation-delay:200ms">
+        <button class="btn btn-primary ft-cta-dim" id="ft-cta">Listo, es esta</button>
+      </div>
+    </div>
+  `;
+  const input = wrap.querySelector('.ft-input');
+  const btn = wrap.querySelector('#ft-cta');
+  const help = wrap.querySelector('#ft-help');
+  input.addEventListener('input', ()=>{ btn.classList.toggle('ft-cta-dim', input.value.trim().length === 0); });
+  function submit(){
+    const val = input.value.trim();
+    if(!val.length){
+      input.focus({preventScroll:true});
+      input.classList.add('error');
+      help.textContent = 'Escribe tu única tarea para continuar';
+      help.classList.add('error');
+      setTimeout(()=>{
+        input.classList.remove('error');
+        help.classList.remove('error');
+        help.textContent = 'Solo esto. Lo demás puede esperar.';
+      }, 1400);
+      return;
+    }
+    answers.firstTask = val;
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+    setTimeout(()=> advanceFrom(s), reduceMotion ? 50 : 350);
+  }
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submit(); });
+  input.addEventListener('input', ()=>{
+    if(input.value.trim().length){ help.textContent = 'Solo esto. Lo demás puede esperar.'; help.classList.remove('error'); }
+  });
+  input.focus({preventScroll:true});
+}
+
+function renderFocusDemo(wrap, s){
+  const task = answers.firstTask || 'Enviar el diseño al cliente';
+  wrap.innerHTML = `
+    <div class="fd-wrap">
+      <div class="fd-ring">
+        <svg viewBox="0 0 168 168"><circle class="fd-ring-track" cx="84" cy="84" r="74"/><circle class="fd-ring-fill" id="fd-ring-fill" cx="84" cy="84" r="74" style="stroke-dashoffset:465;"/></svg>
+        <div class="fd-time" id="fd-time">0:05</div>
+      </div>
+      <div class="fd-task-card reveal-item"><p class="fd-task">${task}</p></div>
+      <p class="fd-sub reveal-item" style="animation-delay:60ms">Así se siente el Modo Enfoque — nada más en pantalla</p>
+      <button class="fd-pause" id="fd-pause">${icon('back')}<span>Salir del enfoque</span></button>
+    </div>
+  `;
+  const timeEl = wrap.querySelector('#fd-time');
+  const ringFill = wrap.querySelector('#fd-ring-fill');
+  const pauseBtn = wrap.querySelector('#fd-pause');
+  const total = 5;
+  let remaining = total;
+  let finished = false;
+  const circumference = 465;
+  function tick(){
+    timeEl.textContent = '0:0' + remaining;
+    const pct = (total-remaining)/total;
+    ringFill.style.strokeDashoffset = String(circumference - circumference*pct);
+    if(remaining > 0){
+      remaining--;
+      setTimeout(tick, reduceMotion ? 50 : 1000);
+    } else {
+      finished = true;
+      setTimeout(showDone, reduceMotion ? 50 : 400);
+    }
+  }
+  function showDone(){
+    const fdWrap = wrap.querySelector('.fd-wrap');
+    fdWrap.innerHTML = `
+      <div class="fd-done reveal-item">
+        <div class="ck">${icon('check')}</div>
+        <p>Sentiste el Modo Enfoque. Así se ve cada tarea tuya, una a la vez.</p>
+        <button class="btn btn-light" id="fd-cta" style="min-height:54px; padding:0 28px; border-radius:var(--radius-btn); font-weight:600; border:none; cursor:pointer;">Ver mi plan</button>
+      </div>
+    `;
+    wrap.querySelector('#fd-cta').addEventListener('click', ()=> advanceFrom(s));
+  }
+  setTimeout(tick, reduceMotion ? 50 : 500);
+  setTimeout(()=>{ if(!finished) pauseBtn.classList.add('show'); }, 2200);
+  pauseBtn.addEventListener('click', ()=>{ if(!finished){ finished = true; advanceFrom(s); } });
+}
+
+function showConfirmModal(message, confirmLabel, onConfirm){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <p>${message}</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="modal-cancel">Seguir aquí</button>
+        <button class="btn btn-ghost" id="modal-confirm">${confirmLabel}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  function close(){
+    overlay.classList.add('closing');
+    setTimeout(()=> overlay.remove(), reduceMotion ? 20 : 180);
+  }
+  overlay.querySelector('#modal-confirm').addEventListener('click', ()=>{ close(); onConfirm(); });
+  overlay.querySelector('#modal-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+  function onKey(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown', onKey); } }
+  document.addEventListener('keydown', onKey);
+  overlay.querySelector('#modal-cancel').focus({preventScroll:true});
+}
+
+function showRestoreMsg(wrap){
+  const box = wrap.querySelector('#restore-msg');
+  box.style.display = 'block';
+  box.textContent = 'No encontramos una compra anterior con este dispositivo. Si ya compraste, escríbenos a hola@focuspulse.app con tu correo de Hotmart.';
+}
+
+let selectedPlan = 'anual';
+function renderPaywall(wrap, s){
+  wrap.style.padding = '0';
+  wrap.innerHTML = `
+    <div class="pay-close"><button aria-label="Cerrar">${icon('x')}</button></div>
+    <div class="pay-body">
+      <div class="pay-head reveal-item" style="display:flex; gap:14px; align-items:flex-start;">
+        <div class="q-icon" style="margin-bottom:0; flex:0 0 auto;">
+          <svg class="ring" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-arc" cx="32" cy="32" r="27"/></svg>
+          <span class="ico-inner">${icon('check')}</span>
+        </div>
+        <div>
+          <h1>Tu plan de <span class="acento">${answers.p3} días/semana</span> está listo</h1>
+          <div class="sub">Hecho con tus 4 respuestas</div>
+        </div>
+      </div>
+      <div class="value-stack reveal-item" style="animation-delay:70ms">
+        <div class="value-item"><span class="ck">${icon('check')}</span><span>Una sola tarea a la vez, sin listas infinitas</span></div>
+        <div class="value-item"><span class="ck">${icon('check')}</span><span>El Pase Cero Culpa: lo no hecho se mueve solo, nunca en rojo</span></div>
+        <div class="value-item"><span class="ck">${icon('check')}</span><span>Racha adulta — sin mascotas ni niveles infantiles</span></div>
+      </div>
+      <div class="plans reveal-item" style="animation-delay:120ms">
+        <div class="plan ${selectedPlan==='anual'?'rec':''}" data-plan="anual">
+          ${selectedPlan==='anual' ? '<span class="badge">2 meses gratis</span>' : ''}
+          <div class="plan-row"><span class="plan-name">Anual</span><span class="plan-price">$2.91<span style="font-size:13px;font-weight:500;">/mes</span></span></div>
+          <div class="plan-sub">Se cobra $34.99/año</div>
+        </div>
+        <div class="plan ${selectedPlan==='mensual'?'rec':''}" data-plan="mensual">
+          <div class="plan-row"><span class="plan-name">Mensual</span><span class="plan-price">$4.99<span style="font-size:13px;font-weight:500;">/mes</span></span></div>
+        </div>
+      </div>
+      <div class="timeline reveal-item" style="animation-delay:170ms">
+        <div class="t-item">
+          <div class="t-rail"><div class="t-node fill"></div><div class="t-line"></div></div>
+          <div class="t-content"><div class="tt">Hoy — acceso completo</div><div class="tc">Todo tu plan, sin límites</div></div>
+        </div>
+        <div class="t-item">
+          <div class="t-rail"><div class="t-node fill"></div><div class="t-line neutral"></div></div>
+          <div class="t-content"><div class="tt">Día 4 — te avisamos</div><div class="tc">Correo antes de cualquier cobro</div></div>
+        </div>
+        <div class="t-item">
+          <div class="t-rail"><div class="t-node outline"></div></div>
+          <div class="t-content"><div class="tt">Día 5 — primer cobro: $34.99/año</div><div class="tc">Cancela antes sin costo</div></div>
+        </div>
+      </div>
+      <div class="cta-fixed reveal-item" style="margin-top:0; animation-delay:220ms">
+        <button class="btn btn-primary" id="pay-cta">Empezar mis 5 días gratis</button>
+        <div class="trust3" style="margin-top:14px;">
+          <div class="row">${icon('check')}<span>Hoy no pagas nada</span></div>
+          <div class="row">${icon('check')}<span>Te avisamos el día 4, antes del cobro</span></div>
+          <div class="row">${icon('check')}<span>Cancela en 1 tap</span></div>
+        </div>
+        <div class="trustrow-final" style="padding-top:10px;">${icon('shield')}<span>Pago con Hotmart (PSE disponible) · Garantía Cero Culpa de 7 días</span></div>
+      </div>
+      <div class="exit-row">
+        <button id="pay-skip">Ahora no</button>
+        <button id="pay-restore" style="color:var(--accent); font-weight:600;">Restaurar compra</button>
+      </div>
+      <div id="restore-msg" class="restore-msg" style="display:none;"></div>
+    </div>
+  `;
+  wrap.querySelectorAll('.plan').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      selectedPlan = p.dataset.plan;
+      wrap.querySelectorAll('.plan').forEach(x=>{
+        x.classList.toggle('rec', x===p);
+        const existingBadge = x.querySelector('.badge');
+        if(existingBadge) existingBadge.remove();
+      });
+      if(selectedPlan === 'anual'){
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '2 meses gratis';
+        p.prepend(badge);
+      }
+    });
+  });
+  wrap.querySelector('#pay-cta').addEventListener('click', ()=> advanceFrom(s));
+  wrap.querySelector('#pay-skip').addEventListener('click', ()=>{
+    showConfirmModal('¿Seguro que quieres continuar sin desbloquear tu plan? Puedes volver cuando quieras.', 'Continuar sin plan', ()=>{
+      window.location.href = 'landing.html';
+    });
+  });
+  wrap.querySelector('.pay-close button').addEventListener('click', ()=>{
+    showConfirmModal('¿Cerrar y salir? Tus respuestas no se guardarán.', 'Salir', ()=>{
+      window.location.href = 'landing.html';
+    });
+  });
+  wrap.querySelector('#pay-restore').addEventListener('click', ()=>{
+    showRestoreMsg(wrap);
+  });
+}
+
+function renderLogin(wrap, s){
+  wrap.style.padding = '0 20px 24px';
+  wrap.innerHTML = `
+    <div class="brandbar" style="padding:18px 0 0;"><div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 9v3l2 2"/></svg></div><span>FocusPulse</span></div>
+    <div class="login-wrap">
+      <div class="login-head reveal-item" style="margin-top:28px;">
+        <h1>Entra a tu plan</h1>
+        <p>Para guardarlo y verlo en cualquier dispositivo</p>
+      </div>
+      <div id="login-form" class="reveal-item" style="animation-delay:60ms">
+        <div class="field"><input type="email" placeholder="tu@correo.com" id="email-input" /></div>
+        <button class="btn btn-primary" id="send-link">Enviarme mi enlace de acceso</button>
+        <div class="divider">o</div>
+        <button class="btn btn-outline btn-google">${icon('google')}<span>Continuar con Google</span></button>
+        <div class="caption-lock">${icon('lock')}<span>Sin contraseñas: te llegará un enlace de un solo uso</span></div>
+      </div>
+    </div>
+  `;
+  wrap.querySelector('#send-link').addEventListener('click', ()=>{
+    const email = wrap.querySelector('#email-input').value || 'tu correo';
+    const loginWrap = wrap.querySelector('.login-wrap');
+    loginWrap.innerHTML = `
+      <div class="sent-box reveal-item">
+        <div class="ico">${icon('mail')}</div>
+        <h2>Revisa tu correo</h2>
+        <p>Te enviamos el enlace a ${email}</p>
+        <button class="resend" disabled>Reenviar en 60s</button>
+        <button class="restart-link" id="restart-flow">${icon('back')}<span>Empezar de nuevo</span></button>
+      </div>
+    `;
+    let t = 60;
+    const btn = loginWrap.querySelector('.resend');
+    const tick = setInterval(()=>{
+      t--; btn.textContent = `Reenviar en ${t}s`;
+      if(t<=0){ clearInterval(tick); btn.disabled=false; btn.textContent='Reenviar'; }
+    }, reduceMotion ? 50 : 1000);
+    wrap.querySelector('#restart-flow').addEventListener('click', ()=>{
+      clearInterval(tick);
+      Object.keys(answers).forEach(k=> delete answers[k]);
+      history = [];
+      go(0);
+    });
+  });
+}
+
+render();
+
+// Deep link para pruebas: ?screen=p3 (o cualquier id del array screens) precarga
+// respuestas de ejemplo y salta directo a esa pantalla.
+const deepLinkScreen = new URLSearchParams(location.search).get('screen');
+if(deepLinkScreen && screens.some(sc=>sc.id===deepLinkScreen)){
+  answers.p1='Listas con fechas en rojo'; answers.p2='Al despertar'; answers.p3=3;
+  answers.p4='Sí, Notion/Todoist/Trello… y las abandoné';
+  go(screens.findIndex(sc=>sc.id===deepLinkScreen));
+}
+</script>
+</body>
+</html>

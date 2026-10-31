@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es" data-kit="abc-v2">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tour de la app — FocusPulse TDAH</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #efeaf6; --surface: #f9f6fc; --text-1: #2c2638; --text-2: #7c7490;
+    --accent: #6e5a9e; --radius-card: 20px; --radius-btn: 14px;
+    --font: 'DM Sans', monospace; --shadow-tinta: 110 90 158;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background:
+      radial-gradient(1100px 520px at 12% -6%, #f7f7f9, transparent 62%),
+      radial-gradient(900px 460px at 92% 4%, #e2e2e9, transparent 58%),
+      linear-gradient(180deg, #ededf0, #e4e4e9);
+    padding: 36px 20px 64px; font-family: 'Segoe UI', system-ui, sans-serif; color: #1c1c1f;
+  }
+  .cabecera { max-width: 900px; margin: 0 auto 28px; text-align: center; }
+  .cabecera h1 { font-size: 22px; font-weight: 700; }
+  .cabecera p { margin-top: 8px; font-size: 14px; color: #55555c; }
+
+  .vistas { max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; }
+  .vista { width: 280px; }
+  .vista .num { text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .vista .nombre { text-align: center; font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
+  .vista .desc { text-align: center; font-size: 11.5px; color: #6a6a72; margin-bottom: 10px; min-height: 30px; }
+
+  .telefono {
+    width: 280px; margin: 0 auto; aspect-ratio: 9 / 19.5;
+    border: 9px solid #101014; border-radius: 40px;
+    box-shadow: 0 20px 50px rgb(20 18 24 / 0.26);
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+    background: var(--bg);
+  }
+  .statusbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px 4px; font-size: 12px; font-weight: 600; color: var(--text-1); }
+  .home-indicator { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 100px; height: 4px; border-radius: 999px; background: var(--text-1); opacity: 0.85; }
+  .pantalla { flex: 1; display: flex; flex-direction: column; overflow: hidden; font-family: var(--font); color: var(--text-1); padding: 0 16px; }
+
+  .tabbar { display: flex; align-items: stretch; justify-content: space-around; margin: 10px -16px 0; padding: 7px 8px 14px; border-top: 1px solid color-mix(in oklab, var(--text-2) 18%, transparent); background: color-mix(in oklab, var(--surface) 88%, transparent); }
+  .tabbar a { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 8.5px; font-weight: 600; color: var(--text-2); text-decoration: none; }
+  .tabbar .tab-chip { display: flex; align-items: center; justify-content: center; width: 32px; height: 23px; border-radius: 8px; }
+  .tabbar a.activa { color: var(--accent); }
+  .tabbar a.activa .tab-chip { background: color-mix(in oklab, var(--accent) 14%, transparent); }
+
+  .cta { margin-top: 12px; display: flex; align-items: center; justify-content: center; height: 44px; border-radius: var(--radius-btn); font-size: 14px; font-weight: 700; background: var(--accent); color: #f9f6fc; box-shadow: 0 8px 20px color-mix(in oklab, var(--accent) 30%, transparent); }
+  .cta.ghost { background: transparent; color: var(--text-2); font-weight: 600; box-shadow: none; border: 1px solid color-mix(in oklab, var(--text-2) 30%, transparent); }
+
+  /* ---- Vista 1: Bienvenida (min 1 — cero fricción) ---- */
+  .v1 .centro-abs { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding-bottom: 20px; }
+  .v1 .marca { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+  .v1 h2 { font-size: 21px; font-weight: 700; line-height: 1.25; margin-top: 4px; }
+  .v1 p.sub { font-size: 12.5px; color: var(--text-2); margin-top: 6px; line-height: 1.5; max-width: 220px; }
+  .v1 .icono-wrap { width: 72px; height: 72px; border-radius: 22px; background: var(--surface); border: 1px solid color-mix(in oklab, var(--accent) 20%, transparent); display: flex; align-items: center; justify-content: center; }
+
+  /* ---- Vista 2: Captura la única tarea (min 3) ---- */
+  .v2 .campo-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-bottom: 20px; }
+  .v2 .pregunta { font-size: 19px; font-weight: 700; line-height: 1.3; text-align: center; }
+  .v2 .input-fantasma { margin-top: 6px; border: 1.5px dashed color-mix(in oklab, var(--accent) 45%, transparent); border-radius: var(--radius-card); padding: 16px; font-size: 14px; color: var(--text-2); text-align: center; background: var(--surface); }
+  .v2 .ayuda { text-align: center; font-size: 11px; color: var(--text-2); margin-top: 4px; }
+
+  /* ---- Vista 3: Enfoque activo (pantalla completa, apaga el ruido) ---- */
+  .v3 .pantalla { background: var(--text-1); color: var(--bg); }
+  .v3 .statusbar { color: var(--bg); }
+  .v3 .home-indicator { background: var(--bg); }
+  .v3 .centro-abs { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding-bottom: 20px; }
+  .v3 .tiempo-grande { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .v3 .tarea-activa { font-size: 14px; opacity: 0.85; max-width: 200px; }
+  .v3 .anillo-mini { position: relative; width: 150px; height: 150px; }
+  .v3 .anillo-mini .centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .v3 .cta.pausa { background: transparent; border: 1.5px solid color-mix(in oklab, var(--bg) 35%, transparent); color: var(--bg); box-shadow: none; }
+
+  /* ---- Vista 4: Cierre del día (celebración, cero culpa) ---- */
+  .v4 .centro-abs { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding-bottom: 20px; }
+  .v4 .chip-ok { width: 56px; height: 56px; border-radius: 999px; background: color-mix(in oklab, var(--accent) 14%, transparent); display: flex; align-items: center; justify-content: center; }
+  .v4 h2 { font-size: 19px; font-weight: 700; margin-top: 4px; }
+  .v4 p.sub { font-size: 12px; color: var(--text-2); margin-top: 6px; max-width: 210px; line-height: 1.55; }
+  .v4 .resumen { margin-top: 14px; display: flex; gap: 10px; }
+  .v4 .resumen .pill { background: var(--surface); border: 1px solid color-mix(in oklab, var(--text-2) 18%, transparent); border-radius: 12px; padding: 8px 12px; text-align: center; }
+  .v4 .resumen .pill b { display: block; font-size: 16px; }
+  .v4 .resumen .pill span { font-size: 9.5px; color: var(--text-2); }
+
+  /* ---- Vista 5: Rachas (gamificación adulta) ---- */
+  .v5 .titulo-r { font-size: 18px; font-weight: 700; margin-top: 10px; }
+  .v5 .sub-r { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+  .v5 .racha-hero { margin-top: 14px; border-radius: var(--radius-card); background: var(--surface); border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent); padding: 16px; text-align: center; }
+  .v5 .racha-hero .num { font-size: 34px; font-weight: 700; }
+  .v5 .racha-hero .lbl { font-size: 11px; color: var(--text-2); }
+  .v5 .semana { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
+  .v5 .semana .dia { width: 28px; height: 28px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: var(--text-2); background: color-mix(in oklab, var(--text-2) 10%, transparent); }
+  .v5 .semana .dia.lleno { background: var(--accent); color: #f9f6fc; }
+  .v5 .nota-r { margin-top: 14px; font-size: 11.5px; color: var(--text-2); text-align: center; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <h1>Tour de FocusPulse TDAH</h1>
+  <p>5 pantallas por dentro, todas con la dirección elegida: lila calmante + acento violeta + DM Sans.</p>
+</header>
+
+<div class="vistas">
+
+  <!-- VISTA 1 — Bienvenida -->
+  <div class="vista">
+    <p class="num">1 · Bienvenida</p>
+    <p class="nombre">Cero fricción</p>
+    <p class="desc">Abre directo. Sin cuenta, sin tutorial largo.</p>
+    <div class="telefono v1">
+      <div class="statusbar"><span>9:41</span><span></span></div>
+      <div class="pantalla">
+        <div class="centro-abs">
+          <div class="icono-wrap">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </div>
+          <p class="marca">FocusPulse</p>
+          <h2>Una sola tarea. Cero culpa.</h2>
+          <p class="sub">No te vamos a pedir categorías, proyectos ni cuentas. Solo dinos qué necesitas hacer ahora.</p>
+          <div class="cta" style="margin-top:18px;width:200px">Empezar</div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <!-- VISTA 2 — Captura la tarea -->
+  <div class="vista">
+    <p class="num">2 · Primera tarea</p>
+    <p class="nombre">La trampa se rompe</p>
+    <p class="desc">Un solo campo. Al escribir, desaparece todo lo demás.</p>
+    <div class="telefono v2">
+      <div class="statusbar"><span>9:41</span><span></span></div>
+      <div class="pantalla">
+        <div class="campo-wrap">
+          <p class="pregunta">¿Qué es lo ÚNICO que tienes que hacer ahora?</p>
+          <div class="input-fantasma">Enviar el diseño al cliente</div>
+          <p class="ayuda">Solo esto. Lo demás puede esperar.</p>
+          <div class="cta">Listo, es esta</div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <!-- VISTA 3 — Enfoque activo -->
+  <div class="vista">
+    <p class="num">3 · Enfoque activo</p>
+    <p class="nombre">Apaga el ruido</p>
+    <p class="desc">Pantalla completa: nada más existe mientras ejecutas.</p>
+    <div class="telefono v3">
+      <div class="statusbar"><span>9:41</span><span></span></div>
+      <div class="pantalla">
+        <div class="centro-abs">
+          <div class="anillo-mini">
+            <svg width="150" height="150" viewBox="0 0 150 150">
+              <circle cx="75" cy="75" r="64" fill="none" stroke-width="10" stroke="rgba(239,234,246,0.14)"/>
+              <circle cx="75" cy="75" r="64" fill="none" stroke-width="10" stroke="#efeaf6" stroke-linecap="round" stroke-dasharray="402" stroke-dashoffset="140" transform="rotate(-90 75 75)"/>
+            </svg>
+            <div class="centro"><span class="tiempo-grande">18:32</span></div>
+          </div>
+          <p class="tarea-activa">Enviar el diseño al cliente</p>
+          <div class="cta pausa" style="margin-top:18px;width:150px">Pausar</div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <!-- VISTA 4 — Cierre del día -->
+  <div class="vista">
+    <p class="num">4 · Cierre del día</p>
+    <p class="nombre">Victoria, no castigo</p>
+    <p class="desc">Lo no hecho ya se movió solo. Hoy terminó bien.</p>
+    <div class="telefono v4">
+      <div class="statusbar"><span>9:41</span><span></span></div>
+      <div class="pantalla">
+        <div class="centro-abs">
+          <div class="chip-ok">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6e5a9e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h2>Hiciste lo que tenías que hacer</h2>
+          <p class="sub">Lo demás ya se movió a mañana. Sin culpa, sin números rojos.</p>
+          <div class="resumen">
+            <div class="pill"><b>1</b><span>tarea hecha</span></div>
+            <div class="pill"><b>18m</b><span>de enfoque</span></div>
+            <div class="pill"><b>12</b><span>días de racha</span></div>
+          </div>
+          <div class="cta" style="margin-top:16px;width:200px">Cerrar el día</div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <!-- VISTA 5 — Rachas -->
+  <div class="vista">
+    <p class="num">5 · Rachas</p>
+    <p class="nombre">Gamificación adulta</p>
+    <p class="desc">Puntos y días, nunca mascotas ni niveles infantiles.</p>
+    <div class="telefono v5">
+      <div class="statusbar"><span>9:41</span><span></span></div>
+      <div class="pantalla">
+        <p class="titulo-r">Tu racha</p>
+        <p class="sub-r">Días seguidos presentándote, aunque sea con una sola tarea</p>
+        <div class="racha-hero">
+          <p class="num">12</p>
+          <p class="lbl">DÍAS DE CALMA SEGUIDOS</p>
+        </div>
+        <div class="semana">
+          <span class="dia lleno">L</span><span class="dia lleno">M</span><span class="dia lleno">M</span>
+          <span class="dia lleno">J</span><span class="dia lleno">V</span><span class="dia">S</span><span class="dia">D</span>
+        </div>
+        <p class="nota-r">Un día sin abrir la app no rompe tu racha de verdad — solo cuenta si vuelves.</p>
+        <nav class="tabbar" aria-label="Navegación">
+          <a href="#"><span class="tab-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>Hoy</a>
+          <a class="activa" href="#"><span class="tab-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L22 9.3l-5.4 4.6 1.8 7.1L12 17l-6.4 4 1.8-7.1L2 9.3l7.4-.4Z"/></svg></span>Rachas</a>
+          <a href="#"><span class="tab-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></span>Perfil</a>
+        </nav>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
