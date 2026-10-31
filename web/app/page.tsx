@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Reveal, Contador } from "./landing-interactions";
+import { Reveal, Contador, AnilloAnimado } from "./landing-interactions";
 
 const check = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5">
@@ -106,31 +106,42 @@ function Plan({
 export default function LandingPage() {
   return (
     <div className="bg-background text-foreground">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2.5 focus:rounded-[var(--radius-btn)] focus:text-sm focus:font-bold"
+      >
+        Saltar al contenido
+      </a>
       <nav
         className="sticky top-0 z-10 backdrop-blur-md"
         style={{ background: "color-mix(in oklab, var(--background) 82%, transparent)", borderBottom: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }}
       >
         <div className="max-w-[70rem] mx-auto px-5 flex items-center justify-between py-3.5">
-          <div className="flex items-center gap-2 font-extrabold text-base">
+          <Link href="/" className="flex items-center gap-2 font-extrabold text-base">
             <span className="w-2.5 h-2.5 rounded-full bg-primary" />
             FocusPulse
             <span className="font-semibold text-muted-foreground text-xs ml-0.5">TDAH</span>
+          </Link>
+          <div className="flex items-center gap-5">
+            <a href="#como-funciona" className="hidden md:inline text-sm font-semibold text-muted-foreground">Cómo funciona</a>
+            <a href="#oferta" className="hidden md:inline text-sm font-semibold text-muted-foreground">Precio</a>
+            <a href="#faq" className="hidden md:inline text-sm font-semibold text-muted-foreground">Preguntas</a>
+            <a
+              href="#oferta"
+              className="inline-flex items-center justify-center h-13 px-5 rounded-[var(--radius-btn)] font-bold text-sm text-primary-foreground active:scale-[.97] transition"
+              style={{
+                backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
+                boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
+              }}
+            >
+              Empezar gratis
+            </a>
           </div>
-          <a
-            href="#oferta"
-            className="inline-flex items-center justify-center h-12 px-5 rounded-[var(--radius-btn)] font-bold text-sm text-primary-foreground active:scale-[.97] transition"
-            style={{
-              backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
-              boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
-            }}
-          >
-            Probar gratis
-          </a>
         </div>
       </nav>
 
       {/* 1. HERO */}
-      <header className="max-w-[70rem] mx-auto px-5 pt-14 grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-7 md:gap-12 items-center">
+      <header id="main" className="max-w-[70rem] mx-auto px-5 pt-14 grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-7 md:gap-12 items-center">
         <div>
           <Reveal>
             <h1 className="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight">
@@ -139,7 +150,7 @@ export default function LandingPage() {
           </Reveal>
           <Reveal delayMs={140}>
             <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-[46ch] leading-relaxed">
-              El primer planificador en español que <b className="text-foreground">perdona automáticamente</b> lo que no hiciste hoy.
+              Un planificador en español que <b className="text-foreground">perdona automáticamente</b> lo que no hiciste hoy — en vez de marcarlo en rojo.
             </p>
           </Reveal>
           <Reveal delayMs={210}>
@@ -152,9 +163,9 @@ export default function LandingPage() {
                   boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
                 }}
               >
-                Probar gratis 5 días
+                Empezar gratis
               </a>
-              <p className="text-xs text-muted-foreground mt-2.5">Sin tarjeta para empezar · cancela cuando quieras</p>
+              <p className="text-xs text-muted-foreground mt-2.5">Prueba gratis 5 días · sin tarjeta · cancela cuando quieras</p>
             </div>
           </Reveal>
         </div>
@@ -172,21 +183,7 @@ export default function LandingPage() {
               style={{ border: "0.4375rem solid var(--foreground)" }}
             >
               <div className="w-[5.75rem] h-[5.75rem] mx-auto mt-2.5 relative">
-                <svg width="92" height="92" viewBox="0 0 92 92">
-                  <circle cx="46" cy="46" r="38" fill="none" strokeWidth="7" stroke="color-mix(in oklab, var(--primary) 16%, transparent)" />
-                  <circle
-                    cx="46"
-                    cy="46"
-                    r="38"
-                    fill="none"
-                    strokeWidth="7"
-                    stroke="var(--primary)"
-                    strokeLinecap="round"
-                    strokeDasharray="239"
-                    strokeDashoffset="70"
-                    transform="rotate(-90 46 46)"
-                  />
-                </svg>
+                <AnilloAnimado radio={38} grosor={7} offsetFinal={70} tamano={92} />
                 <div className="absolute inset-0 flex items-center justify-center font-extrabold text-lg">18:32</div>
               </div>
               <div className="mt-3.5 bg-card rounded-[var(--radius-btn)] p-3 text-center" style={{ border: "1px solid color-mix(in oklab, var(--primary) 20%, transparent)" }}>
@@ -202,7 +199,8 @@ export default function LandingPage() {
       </header>
 
       {/* 2. PROBLEMA */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      <section className="pt-9 pb-7 md:pt-18 md:pb-10" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+        <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center max-w-[36ch] mx-auto leading-tight">¿Te suena familiar?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-9">
           {[
@@ -251,36 +249,37 @@ export default function LandingPage() {
             </Reveal>
           ))}
         </div>
+        </div>
       </section>
 
       {/* 3. AGITACION */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      <section className="max-w-[70rem] mx-auto px-5 pt-2 pb-9 md:pb-18">
         <div className="rounded-[1.75rem] text-background" style={darkPanel}>
           <div className="px-6 md:px-10 py-9 md:py-14">
             <h2 className="text-2xl md:text-3xl font-extrabold max-w-[24ch] leading-tight">
               No es falta de voluntad. Es <span style={{ color: "color-mix(in oklab, var(--background) 85%, var(--primary))" }}>el diseño</span> de las otras apps.
             </h2>
             <p className="mt-4 text-sm md:text-base max-w-[56ch] leading-relaxed" style={{ color: "color-mix(in oklab, var(--background) 80%, transparent)" }}>
-              Cada lista infinita te cuesta hasta <b className="text-background">3 horas al día</b> paralizado decidiendo qué hacer — y la vergüenza de sentir que fallas, cuando te esfuerzas el triple que los demás.
+              Si cada lista infinita te deja <b className="text-background">paralizado decidiendo qué hacer</b>, no es falta de voluntad — y menos vergüenza, cuando te esfuerzas el triple que los demás.
             </p>
             <div className="flex gap-3.5 mt-7 flex-wrap">
-              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
+              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)", boxShadow: "inset 0 2px 6px rgb(0 0 0 / .22)" }}>
                 <b className="block text-2xl">
-                  <Contador objetivo={3} sufijo="h/día" />
+                  <Contador objetivo={1} sufijo=" tarea" />
                 </b>
-                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>perdidas en parálisis</span>
-              </div>
-              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
-                <b className="block text-2xl">
-                  +<Contador objetivo={700} sufijo="h/año" />
-                </b>
-                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>que no vuelven</span>
+                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>a la vez, nunca más</span>
               </div>
               <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
                 <b className="block text-2xl">
                   <Contador objetivo={0} />
                 </b>
-                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>clientes que quieres perder</span>
+                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>números rojos de atraso</span>
+              </div>
+              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
+                <b className="block text-2xl">
+                  <Contador objetivo={5} sufijo=" días" />
+                </b>
+                <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>de prueba gratis</span>
               </div>
             </div>
           </div>
@@ -288,8 +287,14 @@ export default function LandingPage() {
       </section>
 
       {/* 4. SOLUCION */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      <section id="como-funciona" className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
         <div className="text-center max-w-[54ch] mx-auto">
+          <div
+            className="inline-block rounded-full p-[1.5px] mb-3.5"
+            style={{ backgroundImage: "linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 30%, var(--background)))" }}
+          >
+            <span className="block rounded-full bg-background px-3.5 py-1 text-xs font-bold text-primary uppercase tracking-wide">El dispositivo central</span>
+          </div>
           <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">
             Conoce el <span className="text-primary">Pase Cero Culpa</span>
           </h2>
@@ -322,7 +327,8 @@ export default function LandingPage() {
       </section>
 
       {/* 5. LA APP POR DENTRO */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      <section className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+        <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-2xl font-extrabold text-center">Tu app, por dentro</h2>
         <div className="grid grid-cols-3 md:grid-cols-5 gap-2.5 md:gap-4.5 mt-9">
           {[
@@ -394,6 +400,7 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* 6. OFERTA */}
@@ -406,7 +413,7 @@ export default function LandingPage() {
             sufijoPrecio="/mes"
             nota="Se cobra mes a mes"
             items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "Cancela cuando quieras"]}
-            ctaTexto="Probar gratis 5 días"
+            ctaTexto="Empezar gratis"
           />
           <Plan
             recomendado
@@ -415,7 +422,7 @@ export default function LandingPage() {
             sufijoPrecio="/mes"
             nota="Se cobra $34.99/año"
             items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "El precio más bajo del año"]}
-            ctaTexto="Probar gratis 5 días"
+            ctaTexto="Empezar gratis"
           />
         </div>
       </section>
@@ -445,7 +452,8 @@ export default function LandingPage() {
       </section>
 
       {/* 8. FAQ */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      <section id="faq" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+        <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-2xl font-extrabold text-center">Preguntas frecuentes</h2>
         <div className="max-w-[45rem] mx-auto mt-8 flex flex-col gap-2.5">
           {[
@@ -462,6 +470,7 @@ export default function LandingPage() {
               <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">{item.a}</p>
             </details>
           ))}
+        </div>
         </div>
       </section>
 
@@ -483,7 +492,7 @@ export default function LandingPage() {
                 boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
               }}
             >
-              Probar gratis 5 días
+              Empezar gratis
             </a>
           </div>
         </div>

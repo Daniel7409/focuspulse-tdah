@@ -52,6 +52,66 @@ export function Reveal({
   );
 }
 
+export function AnilloAnimado({
+  radio,
+  grosor,
+  offsetFinal,
+  tamano,
+}: {
+  radio: number;
+  grosor: number;
+  offsetFinal: number;
+  tamano: number;
+}) {
+  const ref = useRef<SVGCircleElement>(null);
+  const circunferencia = 2 * Math.PI * radio;
+  const [offset, setOffset] = useState(circunferencia);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      setOffset(offsetFinal);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            requestAnimationFrame(() => setOffset(offsetFinal));
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el as unknown as Element);
+    return () => io.disconnect();
+  }, [offsetFinal]);
+
+  const centro = tamano / 2;
+  return (
+    <svg width={tamano} height={tamano} viewBox={`0 0 ${tamano} ${tamano}`}>
+      <circle cx={centro} cy={centro} r={radio} fill="none" strokeWidth={grosor} stroke="color-mix(in oklab, var(--primary) 16%, transparent)" />
+      <circle
+        ref={ref}
+        cx={centro}
+        cy={centro}
+        r={radio}
+        fill="none"
+        strokeWidth={grosor}
+        stroke="var(--primary)"
+        strokeLinecap="round"
+        strokeDasharray={circunferencia}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${centro} ${centro})`}
+        style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.22,.9,.3,1)" }}
+      />
+    </svg>
+  );
+}
+
 export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [valor, setValor] = useState(0);

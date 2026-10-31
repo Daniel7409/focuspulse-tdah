@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { registrarEvento } from "@/lib/eventos-actions";
 
 type Respuestas = {
   p1: string | null;
@@ -127,6 +128,7 @@ export default function OnboardingPage() {
   const [idx, setIdx] = useState(0);
   const [historial, setHistorial] = useState<number[]>([]);
   const [respuestas, setRespuestas] = useState<Respuestas>({ p1: null, p2: null, p3: 3, p4: null, firstTask: null });
+  const [confirmandoSalida, setConfirmandoSalida] = useState(false);
 
   const paso = PASOS[idx];
   const preguntasIds = PASOS.filter((p) => p.tipo === "pregunta" || p.tipo === "slider").map((p) => p.id);
@@ -134,6 +136,7 @@ export default function OnboardingPage() {
 
   function avanzar() {
     if (idx === PASOS.length - 1) {
+      void registrarEvento("onboarding_completado");
       router.push("/paywall");
       return;
     }
@@ -179,14 +182,30 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="text-sm text-muted-foreground tabular-nums w-8 text-right">{paso.pct}%</div>
-            <Link href="/" className="w-11 h-11 flex items-center justify-center rounded-full text-muted-foreground shrink-0" aria-label="Salir">
+            <button onClick={() => setConfirmandoSalida(true)} className="w-11 h-11 flex items-center justify-center rounded-full text-muted-foreground shrink-0" aria-label="Salir">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="18" height="18">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
-            </Link>
+            </button>
           </div>
         )}
 
+        {confirmandoSalida && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center px-6" style={{ background: "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>
+            <div className="w-full rounded-[var(--radius-card)] p-5.5 bg-card flex flex-col gap-4 text-center" style={{ border: "1px solid color-mix(in oklab, var(--primary) 20%, transparent)" }}>
+              <h2 className="text-lg font-bold">¿Salir ahora?</h2>
+              <p className="text-sm text-muted-foreground">Vas a perder lo que respondiste hasta aquí.</p>
+              <div className="flex flex-col gap-2.5">
+                <Link href="/" className="min-h-12 flex items-center justify-center rounded-[var(--radius-btn)] font-semibold text-sm" style={{ border: "1.5px solid color-mix(in oklab, var(--muted-foreground) 25%, transparent)" }}>
+                  Sí, salir
+                </Link>
+                <button onClick={() => setConfirmandoSalida(false)} className="min-h-12 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-sm">
+                  Seguir aquí
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div key={paso.id} className="flex-1 flex flex-col px-5 pt-7 pb-16 relative">
           {paso.tipo === "pregunta" && (
             <PantallaPregunta
@@ -242,13 +261,16 @@ function PantallaPregunta({
     };
   }, [paso.id]);
 
+  const [saliendo, setSaliendo] = useState(false);
+
   function elegirChip(c: Chip) {
     if (c.freeform) {
       setFreeform(true);
       return;
     }
     onElegir(c.label);
-    timeoutRef.current = setTimeout(onAvanzar, 700);
+    setSaliendo(true);
+    timeoutRef.current = setTimeout(onAvanzar, 320);
   }
 
   function enviarTexto() {
@@ -261,22 +283,30 @@ function PantallaPregunta({
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold leading-tight tracking-tight">{paso.titulo}</h1>
-        {paso.sub && <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{paso.sub}</p>}
+    <div className="flex-1 flex flex-col" style={{ opacity: saliendo ? 0 : 1, transition: "opacity .3s ease" }}>
+      <div className="mb-7 flex items-start gap-3">
+        <span className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center mt-0.5 entrada-escalonada" style={{ border: "2px solid var(--primary)" }}>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round">
+            <circle cx="12" cy="12" r="8" />
+          </svg>
+        </span>
+        <div>
+          <h1 className="text-2xl font-bold leading-tight tracking-tight entrada-escalonada">{paso.titulo}</h1>
+          {paso.sub && <p className="text-[0.9375rem] font-medium text-foreground/75 mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
+        </div>
       </div>
 
       {!freeform ? (
         <div className="flex flex-col gap-3">
-          {paso.chips.map((c) => (
+          {paso.chips.map((c, i) => (
             <button
               key={c.label}
               onClick={() => elegirChip(c)}
-              className="flex items-center gap-3 w-full min-h-14.5 px-4.5 rounded-[var(--radius-btn)] text-left transition active:scale-[.98]"
+              className="flex items-center gap-3 w-full min-h-14.5 px-4.5 rounded-[var(--radius-btn)] text-left transition active:scale-[.98] entrada-escalonada"
               style={{
                 border: valor === c.label ? "1.5px solid var(--primary)" : "1px solid color-mix(in oklab, var(--primary) 14%, transparent)",
                 background: valor === c.label ? "color-mix(in oklab, var(--primary) 9%, var(--card))" : "var(--card)",
+                animationDelay: `${120 + i * 60}ms`,
               }}
             >
               <span className="flex-1 text-sm font-medium">{c.label}</span>
@@ -292,7 +322,7 @@ function PantallaPregunta({
               </span>
             </button>
           ))}
-          <p className="flex items-center justify-center gap-1.5 mt-7 text-sm text-foreground px-3.5 py-2.5 rounded-xl bg-muted">
+          <p className="flex items-center justify-center gap-1.5 mt-7 text-[11px] font-bold uppercase tracking-wide text-foreground/70 px-3.5 py-2.5 rounded-xl bg-muted entrada-escalonada" style={{ animationDelay: "380ms" }}>
             <LockIcon /> Tus respuestas son privadas — nunca se comparten
           </p>
         </div>

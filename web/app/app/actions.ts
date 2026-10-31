@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hoyISO } from "@/lib/fecha";
+import { registrarEvento } from "@/lib/eventos-actions";
 
 async function usuarioActual() {
   const supabase = await createClient();
@@ -76,6 +77,7 @@ export async function completarTarea(taskId: string) {
   const { data, error } = await supabase.rpc("complete_task", { p_task_id: taskId, p_day: dia }).single();
   if (error) throw error;
 
+  await registrarEvento("tarea_completada");
   revalidatePath("/app");
   revalidatePath("/app/rachas");
   return data;

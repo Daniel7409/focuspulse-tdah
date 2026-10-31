@@ -130,22 +130,31 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="w-11 h-11 rounded-[var(--radius-btn)] bg-[var(--bg-hund,theme(colors.secondary))] shadow-[inset_0_2px_5px_rgba(110,90,158,0.18)] flex items-center justify-center mb-3.5">
+    <div
+      className="flex-1 flex flex-col items-center justify-center text-center"
+      style={{ backgroundImage: "radial-gradient(28rem 20rem at 50% -10%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 65%)" }}
+    >
+      <div className="w-11 h-11 rounded-[var(--radius-btn)] bg-[var(--bg-hund,theme(colors.secondary))] shadow-[inset_0_2px_5px_rgba(110,90,158,0.18)] flex items-center justify-center mb-3.5 entrada-escalonada">
         <IconTask className="w-5 h-5 text-primary" />
       </div>
-      <p className="text-xs font-bold text-primary uppercase tracking-wide">Tu única tarea de hoy</p>
-      <h1 className="text-[1.3125rem] font-bold leading-snug mt-1.5 max-w-[17.5rem]">
+      <p className="text-xs font-bold text-primary uppercase tracking-wide entrada-escalonada" style={{ animationDelay: "40ms" }}>Tu única tarea de hoy</p>
+      <h1 className="text-[1.3125rem] font-bold leading-snug mt-1.5 max-w-[17.5rem] entrada-escalonada" style={{ animationDelay: "80ms" }}>
         Una sola cosa. Nada más compite por tu atención.
       </h1>
 
-      <div className="w-full mt-5 bg-card border border-primary/16 rounded-[var(--radius-card)] p-5 shadow-[0_8px_24px_-14px_rgba(110,90,158,0.4)]">
+      <button
+        type="button"
+        onClick={() => setEditando(true)}
+        aria-label="Cambiar mi tarea"
+        className="w-full mt-5 bg-card border border-primary/16 rounded-[var(--radius-card)] p-5 shadow-[0_8px_24px_-14px_rgba(110,90,158,0.4)] text-left transition active:scale-[.99] entrada-escalonada"
+        style={{ animationDelay: "120ms" }}
+      >
         <p className="text-[16px] font-bold leading-snug">{tarea.content}</p>
-      </div>
+      </button>
 
       {errorGlobal && <p className="text-xs text-destructive font-semibold mt-2.5">{errorGlobal}</p>}
 
-      <div className="flex gap-2 mt-4 w-full">
+      <div className="flex gap-2 mt-4 w-full entrada-escalonada" style={{ animationDelay: "160ms" }}>
         {DURACIONES.map((m) => (
           <button
             key={m}
@@ -171,10 +180,10 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
         ))}
       </div>
 
-      <div className="w-full mt-5">
+      <div className="w-full mt-5 entrada-escalonada" style={{ animationDelay: "200ms" }}>
         <button
           onClick={() => setEnEnfoque(true)}
-          className="w-full min-h-[3.375rem] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base shadow-[0_10px_24px_-12px_rgba(110,90,158,0.45)]"
+          className="w-full min-h-[3.375rem] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base shadow-[0_10px_24px_-12px_rgba(110,90,158,0.45)] transition active:scale-[.98]"
         >
           Empezar enfoque · {duracion} min
         </button>
@@ -402,12 +411,20 @@ function Enfoque({
         </div>
       </div>
       <p className="text-base font-semibold max-w-[16.25rem] text-center">{texto}</p>
-      <button
-        onClick={onSalir}
-        className="flex items-center gap-1.5 bg-white/14 border border-white/22 rounded-full text-[0.8125rem] font-bold px-4.5 py-2.5 opacity-75"
-      >
-        <IconBack className="w-3.5 h-3.5" /> Terminar por ahora
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onTerminar}
+          className="rounded-full bg-background text-foreground text-[0.8125rem] font-bold px-4.5 py-2.5 transition active:scale-[.97]"
+        >
+          Ya terminé
+        </button>
+        <button
+          onClick={onSalir}
+          className="flex items-center gap-1.5 bg-white/14 border border-white/22 rounded-full text-[0.8125rem] font-bold px-4.5 py-2.5 opacity-75 transition active:scale-[.97]"
+        >
+          <IconBack className="w-3.5 h-3.5" /> Salir por ahora
+        </button>
+      </div>
     </div>
   );
 }
