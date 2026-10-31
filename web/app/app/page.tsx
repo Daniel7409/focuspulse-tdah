@@ -1,13 +1,9 @@
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { hoyISO } from "@/lib/fecha";
 import HoyScreen from "./hoy-screen";
 
 export const instant = false;
-
-function hoyISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default async function HoyPage() {
   await connection();
@@ -19,7 +15,7 @@ export default async function HoyPage() {
     .from("tasks")
     .select("id, content, status, duration_minutes, completed_at")
     .eq("user_id", user!.id)
-    .eq("task_date", hoyISO())
+    .eq("task_date", await hoyISO())
     .in("status", ["pending", "completed"])
     .order("created_at", { ascending: false })
     .limit(1)

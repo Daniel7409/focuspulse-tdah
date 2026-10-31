@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import ZonaHoraria from "./zona-horaria";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -22,7 +23,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${dmSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col" data-theme="light">
+      <body className="min-h-dvh flex flex-col" data-theme="light">
+        <ZonaHoraria />
         {children}
       </body>
     </html>
