@@ -182,7 +182,12 @@ export default function HoyScreen({ tareaInicial }: { tareaInicial: Tarea | null
 
       <div className="w-full mt-5 entrada-escalonada" style={{ animationDelay: "200ms" }}>
         <button
-          onClick={() => setEnEnfoque(true)}
+          onClick={() => {
+            const finAt = Date.now() + duracion * 60 * 1000;
+            guardarFinEnfoque(tarea.id, finAt);
+            setFinEnfoque(finAt);
+            setEnEnfoque(true);
+          }}
           className="w-full min-h-[3.375rem] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base shadow-[0_10px_24px_-12px_rgba(110,90,158,0.45)] transition active:scale-[.98]"
         >
           Empezar enfoque · {duracion} min
