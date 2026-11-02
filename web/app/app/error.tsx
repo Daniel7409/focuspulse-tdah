@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { registrarError } from "@/lib/error-actions";
 
 export default function ErrorAppInterna({
   error,
@@ -11,6 +12,7 @@ export default function ErrorAppInterna({
 }) {
   useEffect(() => {
     console.error(error);
+    void registrarError(error.message, error.stack, "/app");
   }, [error]);
 
   return (
