@@ -147,7 +147,10 @@ export async function metricasIA(): Promise<MetricasIA> {
   const admin = createAdminClient();
   const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: llamadas } = await admin.from("ai_calls").select("user_id, cost_usd, created_at");
+  const { data: llamadas } = await admin
+    .from("ai_calls")
+    .select("user_id, cost_usd, created_at")
+    .neq("kind", "reservado");
   const filas = llamadas ?? [];
 
   const costoTotalUsd = filas.reduce((s, f) => s + Number(f.cost_usd ?? 0), 0);

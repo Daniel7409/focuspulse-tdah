@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { sugerirPasos } from "@/lib/ai-adapter";
-import { dentroDelPresupuestoDiario, dentroDelLimitePorUsuario, registrarLlamadaIA } from "@/lib/ai-budget";
+import { dentroDelPresupuestoDiario, reservarCupoIA, confirmarLlamadaIA, marcarLlamadaIAFallida } from "@/lib/ai-budget";
 import { tieneAccesoVigente } from "@/lib/acceso";
 
 const BodySchema = z.object({
@@ -26,18 +26,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 });
   }
 
-  // 3) Kill-switch de presupuesto + tope por usuario — ANTES de gastar un centavo.
-  const [dentroDelTope, dentroDelLimite] = await Promise.all([
-    dentroDelPresupuestoDiario(),
-    dentroDelLimitePorUsuario(user.id),
-  ]);
+  // 3) Kill-switch de presupuesto global, y tope por usuario reservado de forma
+  // atómica en la base (nunca "revisar y luego guardar" por separado) — ANTES de
+  // gastar un centavo.
+  const dentroDelTope = await dentroDelPresupuestoDiario();
   if (!dentroDelTope) {
     return NextResponse.json(
       { error: "PRESUPUESTO_DIARIO_AGOTADO", mensaje: "La IA está en pausa por hoy. Vuelve a intentarlo mañana." },
       { status: 429 },
     );
   }
-  if (!dentroDelLimite) {
+  const reservaId = await reservarCupoIA(user.id);
+  if (!reservaId) {
     return NextResponse.json(
       { error: "LIMITE_POR_USUARIO", mensaje: "Has pedido muchas sugerencias en la última hora. Intenta más tarde." },
       { status: 429 },
@@ -47,10 +47,11 @@ export async function POST(request: NextRequest) {
   // 4) Llamar a la IA (reintentos + salida estructurada + zod viven en el adaptador).
   try {
     const { sugerencias, costoUSD } = await sugerirPasos(parsedBody.data.tarea);
-    await registrarLlamadaIA(user.id, "sugerencia_pasos", costoUSD);
+    await confirmarLlamadaIA(reservaId, "sugerencia_pasos", costoUSD);
     return NextResponse.json({ pasos: sugerencias.pasos });
   } catch (error) {
     console.error("[api/ai/sugerir-pasos]", error);
+    await marcarLlamadaIAFallida(reservaId);
     return NextResponse.json(
       { error: "IA_NO_DISPONIBLE", mensaje: "No pudimos pensar sugerencias ahora mismo. Intenta de nuevo en un momento." },
       { status: 502 },
