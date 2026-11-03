@@ -6,13 +6,15 @@ import { createClient } from "@/lib/supabase/client";
 type Estado = "inicial" | "enviando" | "enviado" | "error";
 
 export default function LoginPage() {
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<Estado>("inicial");
   const [segundosParaReenviar, setSegundosParaReenviar] = useState(0);
 
   async function enviarEnlace(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !nombre.trim() || !apellido.trim()) return;
 
     setEstado("enviando");
     const supabase = createClient();
@@ -21,6 +23,8 @@ export default function LoginPage() {
       email: email.trim(),
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // Solo se usa si esta cuenta es nueva — a un correo que ya existe no le cambia el nombre.
+        data: { display_name: `${nombre.trim()} ${apellido.trim()}`.trim() },
       },
     });
 
@@ -64,6 +68,26 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={enviarEnlace} className="flex flex-col gap-3.5">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                autoComplete="given-name"
+                required
+                placeholder="Nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
+              />
+              <input
+                type="text"
+                autoComplete="family-name"
+                required
+                placeholder="Apellido"
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
+                className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
+              />
+            </div>
             <input
               type="email"
               inputMode="email"
