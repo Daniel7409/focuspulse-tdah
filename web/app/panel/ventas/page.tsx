@@ -1,6 +1,7 @@
 import { connection } from "next/server";
-import { distribucionPlanes } from "../data";
+import { distribucionPlanes, ventasSemanales } from "../data";
 import { Tarjeta, TituloSeccion, DatoHeroe, SinDatos, Aviso } from "../ui";
+import GraficoVentas from "../grafico-ventas";
 
 export const instant = false;
 
@@ -13,8 +14,9 @@ const ETIQUETA_PLAN: Record<string, string> = {
 
 export default async function PanelVentas() {
   await connection();
-  const planes = await distribucionPlanes();
+  const [planes, semanas] = await Promise.all([distribucionPlanes(), ventasSemanales()]);
   const total = Object.values(planes).reduce((s, n) => s + n, 0);
+  const huboVentas = semanas.some((s) => s.totalUsd !== 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,6 +27,16 @@ export default async function PanelVentas() {
       </Aviso>
 
       <Tarjeta className="entrada-escalonada" style={{ animationDelay: "40ms" }}>
+        <p className="font-bold text-sm mb-1">Ventas por semana</p>
+        <p className="text-[0.8125rem] text-muted-foreground mb-4">
+          {huboVentas
+            ? "Lo que vendiste netamente cada semana, en las últimas 8 semanas."
+            : "Todavía no hay ninguna venta registrada — en cuanto conectes Hotmart, esta gráfica se va llenando sola, semana a semana."}
+        </p>
+        <GraficoVentas semanas={semanas} />
+      </Tarjeta>
+
+      <Tarjeta className="entrada-escalonada" style={{ animationDelay: "80ms" }}>
         <p className="font-bold text-sm mb-1">Lo que la app tiene registrado hoy</p>
         <p className="text-[0.8125rem] text-muted-foreground mb-4">
           Esto es el estado guardado en tu base de datos, no un cobro confirmado por Hotmart todavía.
@@ -43,11 +55,11 @@ export default async function PanelVentas() {
       </Tarjeta>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Tarjeta className="entrada-escalonada" style={{ animationDelay: "80ms" }}>
+        <Tarjeta className="entrada-escalonada" style={{ animationDelay: "120ms" }}>
           <p className="font-bold text-sm mb-2.5">Ingresos y ganancia real</p>
           <SinDatos>MRR, cancelaciones, y lo que te queda tras Hotmart + impuestos + IA + infraestructura.</SinDatos>
         </Tarjeta>
-        <Tarjeta className="entrada-escalonada" style={{ animationDelay: "120ms" }}>
+        <Tarjeta className="entrada-escalonada" style={{ animationDelay: "160ms" }}>
           <p className="font-bold text-sm mb-2.5">Por canal (LTV, CAC, payback)</p>
           <SinDatos>De dónde llega cada cliente y si ese canal te da ganancia o te la quita.</SinDatos>
         </Tarjeta>

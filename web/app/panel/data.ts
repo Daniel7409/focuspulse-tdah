@@ -192,6 +192,58 @@ export async function distribucionPlanes(): Promise<DistribucionPlanes> {
   return conteo;
 }
 
+export type SemanaVentas = { etiqueta: string; totalUsd: number };
+
+const SEMANAS_A_MOSTRAR = 8;
+
+/** Lunes de la semana que contiene `fecha` (hora local del servidor). */
+function lunesDeLaSemana(fecha: Date): Date {
+  const d = new Date(fecha);
+  const diaSemana = d.getDay(); // 0=domingo..6=sábado
+  const diasDesdeLunes = (diaSemana + 6) % 7;
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - diasDesdeLunes);
+  return d;
+}
+
+/** Ventas netas (venta - reembolso - contracargo) agrupadas por semana, últimas 8 semanas.
+ * Lee de `payment_transactions`, que hoy está vacía — queda lista para llenarse sola en
+ * cuanto el aviso automático de pago de Hotmart quede conectado (18-VENTA-HOTMART.md). */
+export async function ventasSemanales(): Promise<SemanaVentas[]> {
+  const admin = createAdminClient();
+
+  const inicioLunes = lunesDeLaSemana(new Date());
+  const primeraSemana = new Date(inicioLunes);
+  primeraSemana.setDate(primeraSemana.getDate() - 7 * (SEMANAS_A_MOSTRAR - 1));
+
+  const semanas: SemanaVentas[] = [];
+  for (let i = 0; i < SEMANAS_A_MOSTRAR; i++) {
+    const inicio = new Date(primeraSemana);
+    inicio.setDate(inicio.getDate() + 7 * i);
+    semanas.push({
+      etiqueta: inicio.toLocaleDateString("es-CO", { day: "numeric", month: "short" }),
+      totalUsd: 0,
+    });
+  }
+
+  const { data } = await admin
+    .from("payment_transactions")
+    .select("economic_kind, amount_minor, currency, occurred_at")
+    .eq("currency", "USD")
+    .gte("occurred_at", primeraSemana.toISOString());
+
+  for (const fila of data ?? []) {
+    const ocurrida = new Date(fila.occurred_at as string);
+    const semanaIdx = Math.floor((lunesDeLaSemana(ocurrida).getTime() - primeraSemana.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    if (semanaIdx < 0 || semanaIdx >= SEMANAS_A_MOSTRAR) continue;
+    const monto = (fila.amount_minor as number) / 100;
+    const signo = fila.economic_kind === "sale" ? 1 : -1;
+    semanas[semanaIdx].totalUsd += signo * monto;
+  }
+
+  return semanas;
+}
+
 export type ErrorReciente = {
   id: string;
   mensaje: string;
