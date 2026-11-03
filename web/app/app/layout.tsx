@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { tieneAccesoVigente } from "@/lib/acceso";
 import Tabbar from "./tabbar";
 
 export const instant = false;
@@ -11,6 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  if (!(await tieneAccesoVigente(supabase, user.id))) redirect("/paywall");
 
   const fecha = new Date().toLocaleDateString("es-CO", {
     weekday: "short",

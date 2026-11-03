@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { sugerirPasos } from "@/lib/ai-adapter";
 import { dentroDelPresupuestoDiario, dentroDelLimitePorUsuario, registrarLlamadaIA } from "@/lib/ai-budget";
+import { tieneAccesoVigente } from "@/lib/acceso";
 
 const BodySchema = z.object({
   tarea: z.string().min(1).max(500),
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "NOT_AUTHENTICATED" }, { status: 401 });
+  }
+  if (!(await tieneAccesoVigente(supabase, user.id))) {
+    return NextResponse.json({ error: "SIN_ACCESO_VIGENTE" }, { status: 402 });
   }
 
   // 2) Validar el body con zod.
