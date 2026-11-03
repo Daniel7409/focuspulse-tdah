@@ -71,7 +71,7 @@ export default function PaywallPage() {
               style={{ border: plan === "anual" ? "2px solid var(--primary)" : "1.5px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }}
             >
               <span className="absolute -top-2.5 left-4 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-md">
-                2 meses gratis
+                Ahorra 42%
               </span>
               <div className="flex justify-between items-baseline">
                 <span className="text-sm font-semibold">Anual</span>

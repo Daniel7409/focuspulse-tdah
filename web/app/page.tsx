@@ -63,7 +63,7 @@ function Plan({
     >
       {recomendado && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-extrabold uppercase tracking-wide px-3.5 py-1 rounded-full">
-          2 meses gratis
+          Ahorra 42%
         </span>
       )}
       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{nombre}</p>
