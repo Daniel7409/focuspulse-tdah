@@ -9,12 +9,13 @@ export default function LoginPage() {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [estado, setEstado] = useState<Estado>("inicial");
   const [segundosParaReenviar, setSegundosParaReenviar] = useState(0);
 
   async function enviarEnlace(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim() || !nombre.trim() || !apellido.trim()) return;
+    if (!email.trim() || !nombre.trim() || !apellido.trim() || !aceptaTerminos) return;
 
     setEstado("enviando");
     const supabase = createClient();
@@ -99,9 +100,29 @@ export default function LoginPage() {
               className="w-full min-h-[52px] rounded-[var(--radius-btn)] border-[1.5px] border-border bg-card px-4 text-[15.5px] text-foreground outline-none focus:border-primary"
             />
 
+            <label className="flex items-start gap-2 text-xs text-muted-foreground px-0.5">
+              <input
+                type="checkbox"
+                checked={aceptaTerminos}
+                onChange={(e) => setAceptaTerminos(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-primary"
+              />
+              <span>
+                Autorizo el tratamiento de mis datos personales según los{" "}
+                <a href="/terminos" target="_blank" className="text-primary font-medium">
+                  Términos
+                </a>{" "}
+                y la{" "}
+                <a href="/privacidad" target="_blank" className="text-primary font-medium">
+                  Política de privacidad
+                </a>
+                .
+              </span>
+            </label>
+
             <button
               type="submit"
-              disabled={estado === "enviando"}
+              disabled={estado === "enviando" || !aceptaTerminos}
               className="min-h-[52px] rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-[15.5px] disabled:opacity-60"
             >
               {estado === "enviando" ? "Enviando…" : "Enviarme mi enlace de acceso"}

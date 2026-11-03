@@ -292,7 +292,35 @@ Vender inicialmente en Colombia (mercado del usuario) en USD vía Hotmart, con P
   - `web/app/login/page.tsx`: dos campos nuevos (Nombre, Apellido) junto al correo, obligatorios, que viajan como `display_name` al crear la cuenta (a un correo que ya existe no le cambia el nombre — Supabase solo aplica ese dato la primera vez).
   - Migración `supabase/migrations/20261102020000_nombre_tambien_desde_google.sql` (aplicada): quien entra con Google (no pasa por ese formulario) ahora también queda con su nombre real, tomado del `full_name`/`name` que Google ya manda, en vez de quedar "Sin nombre".
 - Verificado: `npx tsc --noEmit` y `npm run build` limpios · probado en vivo en `/login` a 375px, los 2 campos nuevos se ven y validan bien. El envío real del enlace no se pudo probar de punta a punta en esta sesión porque Supabase devolvió "límite de envíos de correo alcanzado" (`over_email_send_rate_limit`, 429) — límite del correo gratuito de Supabase por las pruebas ya hechas hoy, no un error de este cambio. Se verificó aparte, con una consulta directa a la base de datos, que la lógica que arma el nombre (`display_name` propio, o si no el de Google) da el resultado correcto en ambos casos.
-- **Pendiente de subir a GitHub** — falta la confirmación del usuario para el commit+push de este cambio.
+- **Confirmado por el usuario ("subelo ya"): commit y push hechos.** Commit `85ff5bb` en `main`, subido a GitHub.
+- El usuario probó el login real en producción y recibió "No pudimos enviar el enlace". Se investigó con `query_logs` de Supabase (fuente `auth_logs`): error real `429 over_email_send_rate_limit`. Causa confirmada con la documentación oficial de Supabase: el correo gratuito que trae Supabase por defecto solo deja enviar **2 correos por hora**, para todo el proyecto — no es un bug del código, es un límite de la plataforma. Se le explicó al usuario y se le ofreció la solución permanente (conectar Resend, un servicio de correo propio, con un dominio) — el usuario no ha confirmado todavía si seguir con eso.
+
+## Sesión 12 — Auditoría legal completa (Términos, Privacidad, Cookies, Suscripción)
+Fecha de esta auditoría: **2 de noviembre de 2026**. Se siguió `docs/sistema/47-LEGAL-FISCAL-Y-PRIVACIDAD.md` al pie de la letra: inventario real del código primero, luego el checklist, luego la corrección.
+
+**Ya estaba bien (verificado, no se tocó):**
+- Términos, Privacidad y Reembolsos ya existían, bien escritos y en español simple.
+- La garantía de la página de reembolsos (7 días) coincide exacto con la promesa de la landing/paywall — no había el típico desajuste de días.
+- No hay ningún pixel ni cookie de terceros (Meta, Google Analytics, etc.) en toda la app — por eso no hace falta un banner de cookies tipo Unión Europea.
+- Transferencia internacional de datos a la IA (Anthropic/Claude) ya estaba declarada en Privacidad.
+
+**Hallazgos CRÍTICOS corregidos (riesgo real: demanda o denuncia por publicidad engañosa/ley de protección de datos):**
+1. **La Política de Privacidad prometía "eliminar tu cuenta y todos tus datos" pero ese botón no existía en ningún lado de la app** — una promesa de privacidad sin cómo cumplirla es exactamente el tipo de cosa que la Superintendencia de Industria y Comercio (la que vigila la Ley 1581 en Colombia) sanciona. Se agregó un botón real "Eliminar mi cuenta" en el perfil (`web/app/app/perfil/perfil-menu.tsx` + `web/app/app/perfil/actions.ts`), con doble confirmación, que borra la cuenta de verdad (y por el diseño de la base de datos, arrastra automáticamente sus tareas, su racha y su historial con la IA).
+2. **La pantalla de pago prometía "Cancela en 1 tap" pero el menú de "Gestionar mi suscripción" era un botón decorativo que no hacía nada** ("Próximamente") — una promesa de cancelación fácil que en realidad no se puede cumplir es publicidad engañosa y motivo de reembolso/queja ante Hotmart. Se cambió ese botón para que lleve de verdad al portal de Hotmart donde el comprador cancela (`https://consumer.hotmart.com/`, confirmado con la [ayuda oficial de Hotmart](https://help.hotmart.com/es/article/115002183968/-como-cancelar-mi-suscripcion-)).
+
+**Hallazgos MODERADOS corregidos (riesgo real: reclamo de un usuario, no sanción):**
+3. Se agregó un aviso corto junto a la sugerencia de la IA ("Esto lo generó una IA — puede no aplicar a tu caso. No es consejo médico ni profesional") — antes el aviso de IA solo vivía enterrado en Términos, nunca donde de verdad se usa la IA.
+4. Se agregó a Privacidad la cookie propia que ya usaba la app para medir uso interno (no es de terceros, no se había declarado).
+5. Se agregó una casilla obligatoria de aceptación de Términos y Privacidad antes de poder enviarse el enlace de acceso (`web/app/login/page.tsx`) — requisito específico de la Ley 1581 de Colombia: autorización previa y expresa, no una casilla premarcada.
+6. Se agregó, en la pantalla de pago, la frase explícita "Se renueva automáticamente... Cancela cuando quieras desde tu cuenta" junto a la garantía.
+
+**Verificado:** `npm run build` limpio (todas las rutas) · revisado el código de cada corrección contra la base de datos real (los `on delete cascade` ya existían en el esquema desde el inicio, así que borrar la cuenta sí arrastra todo).
+
+**Pendiente, solo para un humano (⚠️):**
+- Si la app empieza a vender fuera de Colombia (México, Brasil, EE.UU.), cada país tiene su propia ley de datos (LFPDPPP, LGPD, CCPA) — esta auditoría cubrió el mercado actual (Colombia), no todos a la vez.
+- Si en algún momento la app empieza a manejar datos de salud reales (no solo el texto libre de una tarea), hay que validar con un abogado local — ahí la ley exige más que lo que cubre esta auditoría.
+- Esta auditoría es de completitud profesional sobre lo que la app hace hoy, no una asesoría legal colegiada — para una revisión con validez legal plena, un abogado colombiano debe firmarla.
+- **Pendiente de subir a GitHub** — falta la confirmación del usuario para el commit+push de estos cambios.
 
 ## Siguiente paso
-Pedir al usuario confirmación para el commit+push del nombre y apellido en el login (Sesión 11). Después, lo que sigue sin tocar: #1 (crítico, paywall/trial sin verificación real en el servidor — se resuelve junto con conectar Hotmart de verdad, que es también lo que empieza a llenar el gráfico de ventas con datos reales) y, si el usuario quiere seguir subiendo el puntaje de las 4 pantallas del dinero, los puntos que quedan de Sesión 9 (acortar el scroll de la landing, dispositivo ownable repetido, integrar `motion/react`). Después, seguir el Paso 6 de la secuencia maestra: Resend → dominio → Hotmart.
+Pedir al usuario confirmación para el commit+push de la auditoría legal (Sesión 12). Después, lo que sigue sin tocar: #1 (crítico, paywall/trial sin verificación real en el servidor — se resuelve junto con conectar Hotmart de verdad) y, si el usuario quiere, avanzar con Resend (correo propio) para quitar el límite de 2 correos/hora. Después, seguir el Paso 6 de la secuencia maestra: Resend → dominio → Hotmart.

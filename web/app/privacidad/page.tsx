@@ -16,6 +16,7 @@ export default function PrivacidadPage() {
         <li>Tu correo electrónico, para iniciar sesión y contactarte.</li>
         <li>La única tarea que escribes cada día y la duración de enfoque que elijas.</li>
         <li>Datos de uso: qué días cierras tu tarea, tu racha y tu plan (prueba o pagado).</li>
+        <li>Una cookie propia (no de terceros) para saber, de forma anónima, qué pantallas visitas dentro de la app y mejorarla. No se usa para publicidad ni se comparte con nadie.</li>
       </ul>
       <p>Solo recopilamos lo que la app necesita para funcionar — nada de ubicación, teléfono ni datos financieros (esos los maneja directamente Hotmart, nunca pasan por nuestros servidores).</p>
 

@@ -137,6 +137,9 @@ export default function PaywallPage() {
               </svg>
               Pago con Hotmart (PSE disponible) · Garantía Cero Culpa de 7 días
             </div>
+            <p className="text-center text-[11px] text-muted-foreground/80 pt-1">
+              Se renueva automáticamente al terminar cada período. Cancela cuando quieras desde tu cuenta.
+            </p>
           </div>
 
           <div className="flex justify-center gap-4.5">

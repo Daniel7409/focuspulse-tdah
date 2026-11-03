@@ -75,6 +75,9 @@ export default function SugerenciaIA({ tarea }: { tarea: string }) {
           </li>
         ))}
       </ol>
+      <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
+        Esto lo generó una IA — puede no aplicar a tu caso. No es consejo médico ni profesional.
+      </p>
     </div>
   );
 }
