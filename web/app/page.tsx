@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Reveal, Contador, AnilloAnimado } from "./landing-interactions";
+import { Reveal, Contador, AnilloAnimado, FaqItem } from "./landing-interactions";
 
 const check = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5">
@@ -97,7 +97,7 @@ function Plan({
         {ctaTexto}
       </Link>
       <p className="flex items-center justify-center gap-1.5 mt-3 text-sm font-bold text-foreground">
-        {shieldMini} Garantía de 7 días
+        {shieldMini} 7 días, sin preguntas
       </p>
     </div>
   );
@@ -166,6 +166,9 @@ export default function LandingPage() {
                 Empezar gratis
               </a>
               <p className="text-xs text-muted-foreground mt-2.5">Prueba gratis 5 días · sin tarjeta · cancela cuando quieras</p>
+              <a href="#oferta" className="inline-block text-xs font-bold text-primary mt-2.5 underline-offset-2 hover:underline">
+                Ver el precio →
+              </a>
             </div>
           </Reveal>
         </div>
@@ -198,8 +201,9 @@ export default function LandingPage() {
         </Reveal>
       </header>
 
-      {/* 2. PROBLEMA */}
-      <section className="pt-9 pb-7 md:pt-18 md:pb-10" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+      {/* 2. PROBLEMA + AGITACIÓN — fusionadas en una sola sección (menos scroll para un cerebro
+          que se abruma con listas largas; antes eran 2 secciones separadas) */}
+      <section className="pt-9 pb-9 md:pt-18 md:pb-14" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
         <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center max-w-[36ch] mx-auto leading-tight">¿Te suena familiar?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-9">
@@ -249,33 +253,29 @@ export default function LandingPage() {
             </Reveal>
           ))}
         </div>
-        </div>
-      </section>
 
-      {/* 3. AGITACION */}
-      <section className="max-w-[70rem] mx-auto px-5 pt-2 pb-9 md:pb-18">
-        <div className="rounded-[1.75rem] text-background" style={darkPanel}>
-          <div className="px-6 md:px-10 py-9 md:py-14">
-            <h2 className="text-2xl md:text-3xl font-extrabold max-w-[24ch] leading-tight">
+        <div className="rounded-[1.75rem] text-background mt-8" style={darkPanel}>
+          <div className="px-6 md:px-10 py-8 md:py-12">
+            <h3 className="text-xl md:text-2xl font-extrabold max-w-[24ch] leading-tight">
               No es falta de voluntad. Es <span style={{ color: "color-mix(in oklab, var(--background) 85%, var(--primary))" }}>el diseño</span> de las otras apps.
-            </h2>
-            <p className="mt-4 text-sm md:text-base max-w-[56ch] leading-relaxed" style={{ color: "color-mix(in oklab, var(--background) 80%, transparent)" }}>
+            </h3>
+            <p className="mt-3 text-sm md:text-base max-w-[56ch] leading-relaxed" style={{ color: "color-mix(in oklab, var(--background) 80%, transparent)" }}>
               Si cada lista infinita te deja <b className="text-background">paralizado decidiendo qué hacer</b>, no es falta de voluntad — y menos vergüenza, cuando te esfuerzas el triple que los demás.
             </p>
-            <div className="flex gap-3.5 mt-7 flex-wrap">
+            <div className="flex gap-3.5 mt-6 flex-wrap">
               <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)", boxShadow: "inset 0 2px 6px rgb(0 0 0 / .22)" }}>
                 <b className="block text-2xl">
                   <Contador objetivo={1} sufijo=" tarea" />
                 </b>
                 <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>a la vez, nunca más</span>
               </div>
-              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
+              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)", boxShadow: "inset 0 2px 6px rgb(0 0 0 / .22)" }}>
                 <b className="block text-2xl">
                   <Contador objetivo={0} />
                 </b>
                 <span className="text-xs" style={{ color: "color-mix(in oklab, var(--background) 72%, transparent)" }}>números rojos de atraso</span>
               </div>
-              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)" }}>
+              <div className="rounded-[var(--radius-btn)] px-4.5 py-3.5" style={{ background: "rgb(255 255 255 / .06)", border: "1px solid rgb(255 255 255 / .12)", boxShadow: "inset 0 2px 6px rgb(0 0 0 / .22)" }}>
                 <b className="block text-2xl">
                   <Contador objetivo={5} sufijo=" días" />
                 </b>
@@ -284,9 +284,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
-      {/* 4. SOLUCION */}
+      {/* 3. SOLUCION */}
       <section id="como-funciona" className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
         <div className="text-center max-w-[54ch] mx-auto">
           <div
@@ -326,85 +327,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. LA APP POR DENTRO */}
-      <section className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
-        <div className="max-w-[70rem] mx-auto px-5">
-        <h2 className="text-2xl md:text-2xl font-extrabold text-center">Tu app, por dentro</h2>
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-2.5 md:gap-4.5 mt-9">
-          {[
-            { titulo: "Bienvenida", texto: "Cero fricción, sin cuenta", oscuro: false },
-            { titulo: "Primera tarea", texto: "Tu única tarea, en grande", oscuro: false },
-            { titulo: "Enfoque activo", texto: "Pantalla completa, sin distracción", oscuro: true },
-            { titulo: "Cierre del día", texto: "Victoria, nunca castigo", oscuro: false },
-            { titulo: "Rachas", texto: "Gamificación adulta", oscuro: false },
-          ].map((item, i) => (
-            <div key={item.titulo} className="bg-card rounded-[1.125rem] p-2.5 md:p-4 text-center" style={{ border: "1px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }}>
-              <div
-                className="w-full aspect-[9/16] rounded-xl mb-2.5 p-2.5 flex flex-col items-center justify-center gap-1.5"
-                style={
-                  item.oscuro
-                    ? { backgroundImage: "linear-gradient(165deg, color-mix(in oklab, var(--foreground) 94%, black), color-mix(in oklab, var(--foreground) 78%, black))" }
-                    : { ...surfaceGrad }
-                }
-              >
-                {i === 0 && (
-                  <>
-                    <span className="w-6.5 h-6.5 rounded-lg flex items-center justify-center" style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", border: "1px solid color-mix(in oklab, var(--primary) 30%, transparent)" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /></svg>
-                    </span>
-                    <div className="h-1.5 rounded-full w-[75%]" style={{ background: "color-mix(in oklab, var(--muted-foreground) 24%, transparent)" }} />
-                    <div className="h-1.5 rounded-full w-[55%]" style={{ background: "color-mix(in oklab, var(--muted-foreground) 24%, transparent)" }} />
-                    <span className="text-[0.4375rem] font-bold text-primary-foreground bg-primary rounded-full px-2.5 py-1">Empezar</span>
-                  </>
-                )}
-                {i === 1 && (
-                  <div className="w-[88%] bg-card/90 rounded-md p-1.5 flex flex-col gap-1" style={{ border: "1px solid color-mix(in oklab, var(--primary) 16%, transparent)" }}>
-                    <span className="text-[0.406rem] font-bold text-primary uppercase">Tu única tarea</span>
-                    <div className="h-1.5 rounded-full w-[55%]" style={{ background: "color-mix(in oklab, var(--muted-foreground) 24%, transparent)" }} />
-                  </div>
-                )}
-                {i === 2 && (
-                  <div className="relative w-9.5 h-9.5">
-                    <svg width="38" height="38" viewBox="0 0 38 38">
-                      <circle cx="19" cy="19" r="15" fill="none" strokeWidth="4" stroke="rgba(239,234,246,.15)" />
-                      <circle cx="19" cy="19" r="15" fill="none" strokeWidth="4" stroke="var(--background)" strokeLinecap="round" strokeDasharray="94" strokeDashoffset="30" transform="rotate(-90 19 19)" />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-[0.4375rem] font-bold text-background">18:32</span>
-                  </div>
-                )}
-                {i === 3 && (
-                  <>
-                    <span className="w-6.5 h-6.5 rounded-lg flex items-center justify-center" style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", border: "1px solid color-mix(in oklab, var(--primary) 30%, transparent)" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.2" strokeLinecap="round"><path d="M20 6 9 17l-5-5" /></svg>
-                    </span>
-                    <div className="flex gap-1">
-                      <div className="bg-card/90 rounded px-1.5 py-1" style={{ border: "1px solid color-mix(in oklab, var(--primary) 16%, transparent)" }}><span className="text-[0.5rem] font-bold">1</span></div>
-                      <div className="bg-card/90 rounded px-1.5 py-1" style={{ border: "1px solid color-mix(in oklab, var(--primary) 16%, transparent)" }}><span className="text-[0.5rem] font-bold">18m</span></div>
-                    </div>
-                  </>
-                )}
-                {i === 4 && (
-                  <>
-                    <span className="text-xl font-extrabold text-primary">12</span>
-                    <span className="text-[0.4375rem] text-muted-foreground font-bold">DÍAS</span>
-                    <div className="flex gap-1">
-                      {[1, 1, 1, 1, 1, 0, 0].map((on, j) => (
-                        <div key={j} className="w-2.5 h-2.5 rounded-[0.1875rem]" style={{ background: on ? "var(--primary)" : "color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <h4 className="text-xs md:text-sm font-bold">{item.titulo}</h4>
-              <p className="text-[0.625rem] md:text-xs text-muted-foreground mt-1">{item.texto}</p>
-            </div>
-          ))}
-        </div>
-        </div>
-      </section>
-
-      {/* 6. OFERTA */}
-      <section id="oferta" className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
+      {/* 4. OFERTA + GARANTÍA (antes eran 2 secciones; la "Tu app, por dentro" de 5 mockups
+          se quitó — mismo mensaje ya lo dan "Solución" y el tour real dentro del onboarding,
+          y recortaba el recorrido de scroll sin agregar nada nuevo a la decisión de compra) */}
+      <section id="oferta" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+      <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center leading-tight">Empieza gratis. Sigue por menos de un café al mes.</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 max-w-[47.5rem] mx-auto">
           <Plan
@@ -425,34 +352,31 @@ export default function LandingPage() {
             ctaTexto="Empezar gratis"
           />
         </div>
-      </section>
-
-      {/* 7. GARANTIA */}
-      <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
         <div
-          className="flex flex-col md:flex-row gap-6 items-center rounded-[1.75rem] p-7 md:p-10 text-center md:text-left"
-          style={{ ...surfaceGrad, border: "1.5px solid color-mix(in oklab, var(--primary) 38%, transparent)", boxShadow: "0 1.125rem 2.5rem -1.25rem color-mix(in oklab, var(--primary) 30%, transparent)" }}
+          className="flex flex-col md:flex-row gap-4 items-center rounded-[1.75rem] p-6 mt-6 max-w-[47.5rem] mx-auto text-center md:text-left"
+          style={{ ...surfaceGrad, border: "1.5px solid color-mix(in oklab, var(--primary) 38%, transparent)" }}
         >
           <div
-            className="w-[5.25rem] h-[5.25rem] rounded-full flex items-center justify-center shrink-0 mx-auto md:mx-0"
-            style={{ background: "color-mix(in oklab, var(--primary) 16%, transparent)", border: "2.5px solid var(--primary)" }}
+            className="w-[3.5rem] h-[3.5rem] rounded-full flex items-center justify-center shrink-0 mx-auto md:mx-0"
+            style={{ background: "color-mix(in oklab, var(--primary) 16%, transparent)", border: "2px solid var(--primary)" }}
           >
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
               <path d="m9 12 2 2 4-4" />
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold">
+            <h3 className="text-base font-extrabold">
               Garantía de <span className="text-primary">7 días</span>
-            </h2>
-            <p className="mt-2 text-muted-foreground text-sm max-w-[60ch]">Si no sientes la calma, te devolvemos tu dinero. Sin preguntas, sin vueltas.</p>
+            </h3>
+            <p className="mt-1 text-muted-foreground text-sm">Si no sientes la calma, te devolvemos tu dinero. Sin preguntas, sin vueltas.</p>
           </div>
+        </div>
         </div>
       </section>
 
-      {/* 8. FAQ */}
-      <section id="faq" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+      {/* 5. FAQ */}
+      <section id="faq" className="py-9 md:py-18">
         <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-2xl font-extrabold text-center">Preguntas frecuentes</h2>
         <div className="max-w-[45rem] mx-auto mt-8 flex flex-col gap-2.5">
@@ -462,19 +386,13 @@ export default function LandingPage() {
             { q: "¿Es seguro pagar con mi tarjeta?", a: "Se procesa por Hotmart, con PSE disponible en Colombia." },
             { q: "¿Puedo cancelar cuando quiera?", a: "Sí, en 1 toque, cuando quieras." },
           ].map((item, i) => (
-            <details key={item.q} className="rounded-2xl px-4.5 py-4" style={{ ...surfaceGrad, border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }} open={i === 0}>
-              <summary className="cursor-pointer font-bold text-sm list-none flex justify-between items-center">
-                {item.q}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" className="shrink-0 ml-3"><path d="M6 9l6 6 6-6" /></svg>
-              </summary>
-              <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-            </details>
+            <FaqItem key={item.q} pregunta={item.q} respuesta={item.a} abiertoInicial={i === 0} />
           ))}
         </div>
         </div>
       </section>
 
-      {/* 9. CTA FINAL */}
+      {/* 6. CTA FINAL */}
       <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
         <div
           className="text-center rounded-[1.75rem] px-6 py-14"
@@ -500,11 +418,11 @@ export default function LandingPage() {
 
       {/* 10. FOOTER LEGAL */}
       <footer className="pt-8 pb-12" style={{ borderTop: "1px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }}>
-        <div className="max-w-[70rem] mx-auto px-5 flex flex-wrap gap-4 justify-between items-center">
-          <div>
-            <a href="/terminos" className="text-muted-foreground text-xs mr-4">Términos de uso</a>
-            <a href="/privacidad" className="text-muted-foreground text-xs mr-4">Política de privacidad</a>
-            <a href="/reembolsos" className="text-muted-foreground text-xs mr-4">Política de reembolsos</a>
+        <div className="max-w-[70rem] mx-auto px-5 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+          <div className="flex flex-col md:flex-row gap-2.5 md:gap-4">
+            <a href="/terminos" className="text-muted-foreground text-xs">Términos de uso</a>
+            <a href="/privacidad" className="text-muted-foreground text-xs">Política de privacidad</a>
+            <a href="/reembolsos" className="text-muted-foreground text-xs">Política de reembolsos</a>
             <a href="mailto:hola@focuspulse.app" className="text-muted-foreground text-xs">Contacto</a>
           </div>
           <div className="flex items-center gap-2 font-extrabold text-sm">

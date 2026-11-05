@@ -112,6 +112,53 @@ export function AnilloAnimado({
   );
 }
 
+export function FaqItem({
+  pregunta,
+  respuesta,
+  abiertoInicial = false,
+}: {
+  pregunta: string;
+  respuesta: string;
+  abiertoInicial?: boolean;
+}) {
+  const [abierto, setAbierto] = useState(abiertoInicial);
+  return (
+    <div
+      className="rounded-[var(--radius-card)] px-4.5 py-4"
+      style={{
+        backgroundImage: "linear-gradient(165deg, var(--card) 0%, color-mix(in oklab, var(--card) 92%, white) 55%, color-mix(in oklab, var(--card) 88%, var(--background)) 100%)",
+        border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)",
+      }}
+    >
+      <button
+        onClick={() => setAbierto((a) => !a)}
+        aria-expanded={abierto}
+        className="w-full cursor-pointer font-bold text-sm flex justify-between items-center text-left"
+      >
+        {pregunta}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--muted-foreground)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="shrink-0 ml-3"
+          style={{ transform: abierto ? "rotate(180deg)" : "none", transition: "transform .25s cubic-bezier(.22,.9,.3,1)" }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      <div style={{ display: "grid", gridTemplateRows: abierto ? "1fr" : "0fr", transition: "grid-template-rows .3s cubic-bezier(.22,.9,.3,1)" }}>
+        <div className="overflow-hidden">
+          <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">{respuesta}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [valor, setValor] = useState(0);
@@ -128,7 +175,7 @@ export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?:
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            const dur = 900;
+            const dur = 500;
             const start = performance.now();
             function tick(now: number) {
               const p = Math.min((now - start) / dur, 1);

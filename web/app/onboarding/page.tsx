@@ -19,7 +19,7 @@ type PasoPregunta = {
   tipo: "pregunta";
   id: string;
   pct: number;
-  titulo: string;
+  titulo: React.ReactNode;
   sub?: string;
   key: "p1" | "p2" | "p4";
   chips: Chip[];
@@ -47,7 +47,11 @@ const PASOS: Paso[] = [
     tipo: "pregunta",
     id: "p1",
     pct: 11,
-    titulo: "¿Cuál es tu mayor fuente de parálisis hoy?",
+    titulo: (
+      <>
+        ¿Cuál es tu mayor fuente de <span className="text-primary">parálisis</span> hoy?
+      </>
+    ),
     sub: "Esto decide qué tanto simplificamos tu primer día",
     key: "p1",
     chips: [
@@ -61,7 +65,11 @@ const PASOS: Paso[] = [
     tipo: "pregunta",
     id: "p2",
     pct: 24,
-    titulo: "¿En qué momento del día más se te apaga el cerebro?",
+    titulo: (
+      <>
+        ¿En qué momento del día más <span className="text-primary">se te apaga</span> el cerebro?
+      </>
+    ),
     key: "p2",
     chips: [
       { label: "Al despertar" },
@@ -88,7 +96,11 @@ const PASOS: Paso[] = [
     tipo: "pregunta",
     id: "p4",
     pct: 72,
-    titulo: "¿Ya intentaste otras apps de productividad?",
+    titulo: (
+      <>
+        ¿Ya intentaste otras apps de productividad... y las <span className="text-primary">abandonaste</span>?
+      </>
+    ),
     key: "p4",
     chips: [
       { label: "Sí, Notion/Todoist/Trello… y las abandoné" },
@@ -155,9 +167,15 @@ export default function OnboardingPage() {
   return (
     <div
       className="min-h-dvh flex justify-center"
-      style={{ background: "color-mix(in oklab, var(--primary) 10%, var(--background))" }}
+      style={{ background: "color-mix(in oklab, var(--primary) 18%, var(--background))" }}
     >
-      <div className="w-full max-w-[26.875rem] min-h-dvh bg-background flex flex-col relative overflow-hidden">
+      <div
+        className="w-full max-w-[26.875rem] min-h-dvh flex flex-col relative overflow-hidden"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, color-mix(in oklab, var(--primary) 9%, var(--background)) 0%, var(--background) 15rem)",
+        }}
+      >
         {!ocultarTopbar && (
           <div className="flex items-center gap-2.5 px-5 pt-4.5">
             <button
@@ -190,22 +208,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {confirmandoSalida && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center px-6" style={{ background: "color-mix(in oklab, var(--foreground) 45%, transparent)" }}>
-            <div className="w-full rounded-[var(--radius-card)] p-5.5 bg-card flex flex-col gap-4 text-center" style={{ border: "1px solid color-mix(in oklab, var(--primary) 20%, transparent)" }}>
-              <h2 className="text-lg font-bold">¿Salir ahora?</h2>
-              <p className="text-sm text-muted-foreground">Vas a perder lo que respondiste hasta aquí.</p>
-              <div className="flex flex-col gap-2.5">
-                <Link href="/" className="min-h-12 flex items-center justify-center rounded-[var(--radius-btn)] font-semibold text-sm" style={{ border: "1.5px solid color-mix(in oklab, var(--muted-foreground) 25%, transparent)" }}>
-                  Sí, salir
-                </Link>
-                <button onClick={() => setConfirmandoSalida(false)} className="min-h-12 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-sm">
-                  Seguir aquí
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {confirmandoSalida && <DialogoSalir onCancelar={() => setConfirmandoSalida(false)} />}
         <div key={paso.id} className="flex-1 flex flex-col px-5 pt-7 pb-16 relative">
           {paso.tipo === "pregunta" && (
             <PantallaPregunta
@@ -215,6 +218,8 @@ export default function OnboardingPage() {
                 setRespuestas((r) => ({ ...r, [paso.key]: v }));
               }}
               onAvanzar={avanzar}
+              pos={Math.max(posicionPregunta, 0)}
+              total={preguntasIds.length}
             />
           )}
           {paso.tipo === "reconocimiento" && <PantallaReconocimiento paso={paso} respuestas={respuestas} onAvanzar={avanzar} />}
@@ -236,21 +241,67 @@ export default function OnboardingPage() {
   );
 }
 
+function DialogoSalir({ onCancelar }: { onCancelar: () => void }) {
+  const [mostrar, setMostrar] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMostrar(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  return (
+    <div
+      className="absolute inset-0 z-20 flex items-center justify-center px-6"
+      style={{
+        background: "color-mix(in oklab, var(--foreground) 45%, transparent)",
+        opacity: mostrar ? 1 : 0,
+        transition: "opacity .2s ease",
+      }}
+    >
+      <div
+        className="w-full rounded-[var(--radius-card)] p-5.5 bg-card flex flex-col gap-4 text-center"
+        style={{
+          border: "1px solid color-mix(in oklab, var(--primary) 20%, transparent)",
+          opacity: mostrar ? 1 : 0,
+          transform: mostrar ? "scale(1)" : "scale(.94)",
+          transition: "opacity .2s ease, transform .2s cubic-bezier(.22,.9,.3,1)",
+        }}
+      >
+        <h2 className="text-lg font-bold">¿Salir ahora?</h2>
+        <p className="text-sm text-muted-foreground">Vas a perder lo que respondiste hasta aquí.</p>
+        <div className="flex flex-col gap-2.5">
+          <Link href="/" className="min-h-12 flex items-center justify-center rounded-[var(--radius-btn)] font-semibold text-sm" style={{ border: "1.5px solid color-mix(in oklab, var(--muted-foreground) 25%, transparent)" }}>
+            Sí, salir
+          </Link>
+          <button onClick={onCancelar} className="min-h-12 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-sm">
+            Seguir aquí
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PantallaPregunta({
   paso,
   valor,
   onElegir,
   onAvanzar,
+  pos,
+  total,
 }: {
   paso: PasoPregunta;
   valor: string | null;
   onElegir: (v: string) => void;
   onAvanzar: () => void;
+  pos: number;
+  total: number;
 }) {
   const [freeform, setFreeform] = useState(false);
   const [texto, setTexto] = useState("");
   const [error, setError] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     setFreeform(false);
@@ -285,27 +336,59 @@ function PantallaPregunta({
   return (
     <div className="flex-1 flex flex-col" style={{ opacity: saliendo ? 0 : 1, transition: "opacity .3s ease" }}>
       <div className="mb-7 flex items-start gap-3">
-        <span className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center mt-0.5 entrada-escalonada" style={{ border: "2px solid var(--primary)" }}>
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round">
-            <circle cx="12" cy="12" r="8" />
+        <span className="relative w-9 h-9 rounded-full shrink-0 mt-0.5 entrada-escalonada" aria-hidden>
+          <svg viewBox="0 0 36 36" width="36" height="36" className="-rotate-90">
+            <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" stroke="color-mix(in oklab, var(--primary) 18%, transparent)" />
+            <circle
+              cx="18"
+              cy="18"
+              r="15"
+              fill="none"
+              strokeWidth="3"
+              stroke="var(--primary)"
+              strokeLinecap="round"
+              strokeDasharray={94.2}
+              strokeDashoffset={94.2 - 94.2 * ((pos + 1) / total)}
+              style={{ transition: "stroke-dashoffset .5s cubic-bezier(.22,.9,.3,1)" }}
+            />
           </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[0.5625rem] font-extrabold text-primary tabular-nums" style={{ lineHeight: 1 }}>
+            {pos + 1}
+          </span>
         </span>
         <div>
           <h1 className="text-2xl font-bold leading-tight tracking-tight entrada-escalonada">{paso.titulo}</h1>
-          {paso.sub && <p className="text-[0.9375rem] font-medium text-foreground/75 mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
+          {paso.sub && <p className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
         </div>
       </div>
 
       {!freeform ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" role="radiogroup" aria-label={typeof paso.titulo === "string" ? paso.titulo : undefined}>
           {paso.chips.map((c, i) => (
             <button
               key={c.label}
+              ref={(el) => {
+                chipRefs.current[i] = el;
+              }}
               onClick={() => elegirChip(c)}
-              className="flex items-center gap-3 w-full min-h-14.5 px-4.5 rounded-[var(--radius-btn)] text-left transition active:scale-[.98] entrada-escalonada"
+              disabled={saliendo}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  const dir = e.key === "ArrowDown" ? 1 : -1;
+                  const siguiente = (i + dir + paso.chips.length) % paso.chips.length;
+                  chipRefs.current[siguiente]?.focus();
+                }
+              }}
+              role="radio"
+              aria-checked={valor === c.label}
+              className="flex items-center gap-3 w-full min-h-14.5 px-4.5 rounded-[var(--radius-btn)] text-left transition active:scale-[.98] entrada-escalonada disabled:pointer-events-none"
               style={{
-                border: valor === c.label ? "1.5px solid var(--primary)" : "1px solid color-mix(in oklab, var(--primary) 14%, transparent)",
+                border: valor === c.label ? "1.5px solid var(--primary)" : "1.5px solid color-mix(in oklab, var(--primary) 14%, transparent)",
                 background: valor === c.label ? "color-mix(in oklab, var(--primary) 9%, var(--card))" : "var(--card)",
+                boxShadow: valor === c.label
+                  ? "0 0.75rem 1.75rem -1rem color-mix(in oklab, var(--primary) 38%, transparent)"
+                  : "0 0.5rem 1.25rem -0.875rem color-mix(in oklab, var(--primary) 26%, transparent)",
                 animationDelay: `${120 + i * 60}ms`,
               }}
             >
@@ -322,7 +405,7 @@ function PantallaPregunta({
               </span>
             </button>
           ))}
-          <p className="flex items-center justify-center gap-1.5 mt-7 text-[11px] font-bold uppercase tracking-wide text-foreground/70 px-3.5 py-2.5 rounded-xl bg-muted entrada-escalonada" style={{ animationDelay: "380ms" }}>
+          <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-bold uppercase tracking-wide text-muted-foreground entrada-escalonada" style={{ animationDelay: "380ms" }}>
             <LockIcon /> Tus respuestas son privadas — nunca se comparten
           </p>
         </div>
