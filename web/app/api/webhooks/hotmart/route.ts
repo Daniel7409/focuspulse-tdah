@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         offer?: { code?: string };
         product?: { id?: string | number };
       };
-      subscription?: { subscriber?: { code?: string } };
+      subscription?: { subscriber?: { code?: string; email?: string } };
       buyer?: { email?: string; name?: string };
     };
   };
@@ -55,7 +55,10 @@ export async function POST(req: NextRequest) {
   }
 
   const evento = payload.event ?? "";
-  const email = payload.data?.buyer?.email;
+  // Los eventos de compra traen al comprador en data.buyer; los eventos de SUSCRIPCIÓN
+  // (cancelación, atraso, etc.) no tienen "buyer" — el correo viene (si acaso) en
+  // data.subscription.subscriber. Para esos casos el perfil igual se resuelve por subscriber_code.
+  const email = payload.data?.buyer?.email ?? payload.data?.subscription?.subscriber?.email;
   const nombre = payload.data?.buyer?.name ?? "";
   const subscriberCode = payload.data?.subscription?.subscriber?.code;
   const transactionId = payload.data?.purchase?.transaction;
@@ -87,23 +90,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "unknown offer" }, { status: 400 });
   }
 
-  if (!email) {
-    await admin.from("webhook_log").insert({ event_id: eventId, type: evento, result: "error" });
-    return NextResponse.json({ error: "missing buyer email" }, { status: 400 });
-  }
-
   // 5. Resolver el dueño del perfil — si es comprador nuevo, se crea su cuenta ANTES de aplicar
-  //    el evento (para no marcar "procesado" un pago cuyo acceso todavía no existe).
+  //    el evento (para no marcar "procesado" un pago cuyo acceso todavía no existe). Un evento de
+  //    SUSCRIPCIÓN (cancelación, atraso...) no siempre trae email, pero sí subscriber_code, que
+  //    ya quedó guardado en el perfil desde la compra original — alcanza para resolverlo.
   let userId: string | null = null;
   {
     const { data } = await admin.rpc("resolver_perfil_hotmart", {
-      p_email: email,
+      p_email: email ?? null,
       p_subscriber_code: subscriberCode ?? null,
     });
     userId = (data as string | null) ?? null;
   }
 
   if (!userId && (nuevoEstado === "trialing" || nuevoEstado === "active")) {
+    if (!email) {
+      await admin.from("webhook_log").insert({ event_id: eventId, type: evento, result: "error" });
+      return NextResponse.json({ error: "missing buyer email" }, { status: 400 });
+    }
     const { data: creado, error: errorCreacion } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { display_name: nombre || undefined },
       redirectTo: `${SITE_URL}/auth/callback`,
