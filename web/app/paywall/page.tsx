@@ -4,6 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { registrarEvento } from "@/lib/eventos-actions";
 
+const CHECKOUT_URL: Record<"anual" | "mensual", string> = {
+  mensual: "https://pay.hotmart.com/L108378734B?off=7kyzw7j1",
+  anual: "https://pay.hotmart.com/L108378734B?off=il5ezkuo",
+};
+
+function leerAnonId(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )aid=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 const checkIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
     <path d="M20 6 9 17l-5-5" />
@@ -16,6 +27,13 @@ export default function PaywallPage() {
   useEffect(() => {
     void registrarEvento("paywall_visto");
   }, []);
+
+  function irAlCheckout() {
+    void registrarEvento("prueba_iniciada", { plan });
+    const anonId = leerAnonId();
+    const params = anonId ? `&showOnlyTrial=1&sck=${encodeURIComponent(anonId)}` : "&showOnlyTrial=1";
+    window.location.href = `${CHECKOUT_URL[plan]}${params}`;
+  }
 
   return (
     <div
@@ -115,12 +133,12 @@ export default function PaywallPage() {
           </div>
 
           <div className="entrada-escalonada" style={{ animationDelay: "260ms" }}>
-            <Link
-              href="/login"
+            <button
+              onClick={irAlCheckout}
               className="w-full flex items-center justify-center min-h-13.5 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold transition active:scale-[.98]"
             >
               Empezar mis 5 días gratis
-            </Link>
+            </button>
             <div className="flex flex-col gap-1.5 items-center mt-3.5">
               {["Hoy no pagas nada", "Te avisamos el día 4, antes del cobro", "Cancela en 1 tap"].map((t) => (
                 <div key={t} className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -137,7 +155,7 @@ export default function PaywallPage() {
               </svg>
               Pago con Hotmart (PSE disponible) · Garantía Cero Culpa de 7 días
             </div>
-            <p className="text-center text-[11px] text-muted-foreground/80 pt-1">
+            <p className="text-center text-xs text-muted-foreground/80 pt-1">
               Se renueva automáticamente al terminar cada período. Cancela cuando quieras desde tu cuenta.
             </p>
           </div>
