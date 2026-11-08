@@ -69,9 +69,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, ignored: evento });
   }
 
-  const nuevoEstado = estadoParaEvento(evento);
+  let nuevoEstado = estadoParaEvento(evento);
   if (!nuevoEstado) {
     return NextResponse.json({ received: true, ignored: evento });
+  }
+
+  // Confirmado con una compra de prueba real: Hotmart NO manda un evento propio al iniciar la
+  // prueba gratis — manda el mismo PURCHASE_APPROVED que un cobro real, pero con price.value = 0.
+  // Sin esto, el inicio de la prueba quedaría marcado como "ya cobrado" (first_paid_at en el día 0).
+  if (nuevoEstado === "active" && !payload.data?.purchase?.price?.value) {
+    nuevoEstado = "trialing";
   }
 
   // 4. Catálogo — rechazar ofertas ajenas a las dos reales de esta app.
