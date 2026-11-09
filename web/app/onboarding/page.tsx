@@ -143,8 +143,6 @@ export default function OnboardingPage() {
   const [confirmandoSalida, setConfirmandoSalida] = useState(false);
 
   const paso = PASOS[idx];
-  const preguntasIds = PASOS.filter((p) => p.tipo === "pregunta" || p.tipo === "slider").map((p) => p.id);
-  const posicionPregunta = preguntasIds.indexOf(paso.id);
 
   function avanzar() {
     if (idx === PASOS.length - 1) {
@@ -173,7 +171,7 @@ export default function OnboardingPage() {
         className="w-full max-w-[26.875rem] min-h-dvh flex flex-col relative overflow-hidden"
         style={{
           backgroundImage:
-            "linear-gradient(180deg, color-mix(in oklab, var(--primary) 9%, var(--background)) 0%, var(--background) 15rem)",
+            "radial-gradient(26rem 18rem at 50% 0%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%), linear-gradient(180deg, color-mix(in oklab, var(--card) 88%, white) 0%, var(--background) 17rem)",
         }}
       >
         {!ocultarTopbar && (
@@ -188,16 +186,11 @@ export default function OnboardingPage() {
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <div className="flex-1 flex flex-col gap-1">
-              <div className="h-1 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-350"
-                  style={{ width: `${paso.pct}%`, transitionDuration: "350ms" }}
-                />
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {posicionPregunta >= 0 ? `Pregunta ${posicionPregunta + 1} de ${preguntasIds.length}` : ""}
-              </div>
+            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-350"
+                style={{ width: `${paso.pct}%`, transitionDuration: "350ms" }}
+              />
             </div>
             <div className="text-sm text-muted-foreground tabular-nums w-8 text-right">{paso.pct}%</div>
             <button onClick={() => setConfirmandoSalida(true)} className="w-11 h-11 flex items-center justify-center rounded-full text-muted-foreground shrink-0" aria-label="Salir">
@@ -209,7 +202,7 @@ export default function OnboardingPage() {
         )}
 
         {confirmandoSalida && <DialogoSalir onCancelar={() => setConfirmandoSalida(false)} />}
-        <div key={paso.id} className="flex-1 flex flex-col px-5 pt-7 pb-16 relative">
+        <div key={paso.id} className="flex-1 flex flex-col justify-center px-5 pt-7 pb-16 relative">
           {paso.tipo === "pregunta" && (
             <PantallaPregunta
               paso={paso}
@@ -218,8 +211,6 @@ export default function OnboardingPage() {
                 setRespuestas((r) => ({ ...r, [paso.key]: v }));
               }}
               onAvanzar={avanzar}
-              pos={Math.max(posicionPregunta, 0)}
-              total={preguntasIds.length}
             />
           )}
           {paso.tipo === "reconocimiento" && <PantallaReconocimiento paso={paso} respuestas={respuestas} onAvanzar={avanzar} />}
@@ -287,15 +278,11 @@ function PantallaPregunta({
   valor,
   onElegir,
   onAvanzar,
-  pos,
-  total,
 }: {
   paso: PasoPregunta;
   valor: string | null;
   onElegir: (v: string) => void;
   onAvanzar: () => void;
-  pos: number;
-  total: number;
 }) {
   const [freeform, setFreeform] = useState(false);
   const [texto, setTexto] = useState("");
@@ -334,32 +321,10 @@ function PantallaPregunta({
   }
 
   return (
-    <div className="flex-1 flex flex-col" style={{ opacity: saliendo ? 0 : 1, transition: "opacity .3s ease" }}>
-      <div className="mb-7 flex items-start gap-3">
-        <span className="relative w-9 h-9 rounded-full shrink-0 mt-0.5 entrada-escalonada" aria-hidden>
-          <svg viewBox="0 0 36 36" width="36" height="36" className="-rotate-90">
-            <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" stroke="color-mix(in oklab, var(--primary) 18%, transparent)" />
-            <circle
-              cx="18"
-              cy="18"
-              r="15"
-              fill="none"
-              strokeWidth="3"
-              stroke="var(--primary)"
-              strokeLinecap="round"
-              strokeDasharray={94.2}
-              strokeDashoffset={94.2 - 94.2 * ((pos + 1) / total)}
-              style={{ transition: "stroke-dashoffset .5s cubic-bezier(.22,.9,.3,1)" }}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[0.5625rem] font-extrabold text-primary tabular-nums" style={{ lineHeight: 1 }}>
-            {pos + 1}
-          </span>
-        </span>
-        <div>
-          <h1 className="text-2xl font-bold leading-tight tracking-tight entrada-escalonada">{paso.titulo}</h1>
-          {paso.sub && <p className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
-        </div>
+    <div className="flex flex-col" style={{ opacity: saliendo ? 0 : 1, transition: "opacity .3s ease" }}>
+      <div className="mb-7 entrada-escalonada">
+        <h1 className="text-2xl font-bold leading-tight tracking-tight">{paso.titulo}</h1>
+        {paso.sub && <p className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
       </div>
 
       {!freeform ? (
@@ -388,7 +353,7 @@ function PantallaPregunta({
                 background: valor === c.label ? "color-mix(in oklab, var(--primary) 9%, var(--card))" : "var(--card)",
                 boxShadow: valor === c.label
                   ? "0 0.75rem 1.75rem -1rem color-mix(in oklab, var(--primary) 38%, transparent)"
-                  : "0 0.5rem 1.25rem -0.875rem color-mix(in oklab, var(--primary) 26%, transparent)",
+                  : "0 0.125rem 0.375rem -0.25rem rgb(0 0 0 / .08)",
                 animationDelay: `${120 + i * 60}ms`,
               }}
             >
@@ -405,7 +370,7 @@ function PantallaPregunta({
               </span>
             </button>
           ))}
-          <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-bold uppercase tracking-wide text-muted-foreground entrada-escalonada" style={{ animationDelay: "380ms" }}>
+          <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-normal text-muted-foreground/70 entrada-escalonada" style={{ animationDelay: "380ms" }}>
             <LockIcon /> Tus respuestas son privadas — nunca se comparten
           </p>
         </div>
@@ -564,7 +529,7 @@ function PantallaEnfoque({ tarea, onAvanzar }: { tarea: string | null; onAvanzar
 
   return (
     <div
-      className="flex-1 flex flex-col items-center justify-center gap-5.5 text-center rounded-[1.75rem] -mx-5 -mt-7 -mb-16 px-5 py-7"
+      className="flex-1 flex flex-col items-center justify-center gap-5.5 text-center rounded-[var(--radius-xl)] -mx-5 -mt-7 -mb-16 px-5 py-7"
       style={{
         backgroundImage:
           "radial-gradient(32.5rem 20rem at 50% 0%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 65%), linear-gradient(180deg, color-mix(in oklab, var(--foreground) 94%, black) 0%, color-mix(in oklab, var(--foreground) 86%, black) 55%, var(--foreground) 100%)",

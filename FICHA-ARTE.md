@@ -20,7 +20,7 @@ Sin referencia visual del usuario → Protocolo A/B/C (54): 3 fusiones de líder
 - **Texto:** #2C2638 (primario) / #65607A (secundario) / #9089A8 (terciario/caption) — ajustado desde el #7C7490 inicial al implementar landing.html y onboarding.html, para pasar contraste AA sobre el fondo lila en texto de 13-14px.
 - **Acento:** violeta sobrio #6E5A9E — un solo acento, sin neón, sin glow.
 - **Tipografía:** DM Sans, familia única (patrón más seguro de apps líderes — Duolingo/Revolut/Linear; confirmada contra fila "Bienestar/meditación" de 29, que es la que usa Tiimo).
-- **Radius:** cards 20px · botones 14px.
+- **Radius:** cards/inputs 20px (`--radius-card`) · botones 14px (`--radius-btn`) · paneles hero/feature grandes 28px (`--radius-xl`, mismo valor que ya se usaba, ahora documentado como segundo tier intencional — Sesión de diseño landing/onboarding).
 - **Dispositivo ownable:** anillo de progreso de enfoque (de Streaks) + tareas movidas mostradas TACHADAS CON CARIÑO, nunca en rojo (idea propia, de la dirección "Bitácora cálida").
 - **Gamificación:** racha en puntos/días — adulta, sin mascotas ni niveles infantiles (ajuste pedido por el usuario sobre Sprout).
 - **Sombra:** tintada en violeta (110 90 158), nunca negra pura.

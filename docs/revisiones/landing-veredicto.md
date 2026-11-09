@@ -1,28 +1,28 @@
 # VEREDICTO revisor-visual — landing (ronda 5)
-Fecha: 2026-11-04 00:00
-Screenshot: docs/revisiones/landing-375-1-hero-v2.jpg, docs/revisiones/landing-375-2-problema-v2.jpg, docs/revisiones/landing-375-3-agitacion-solucion-v3.jpg, docs/revisiones/landing-375-4-oferta-v3.jpg, docs/revisiones/landing-375-5-faq-v3.jpg, docs/revisiones/landing-375-6-footer-v3.jpg
-Usabilidad: 30/40
-Craft: 15/20
-Copy (si vende): 18/20
+Fecha: 2026-11-08 00:00
+Screenshot: docs/revisiones/landing-375-v5-1-hero.jpg, docs/revisiones/landing-375-v5-2-solucion-demo.jpg, docs/revisiones/landing-375-v5-3-oferta.jpg, docs/revisiones/landing-375-v5-4-faq-separacion.jpg, docs/revisiones/landing-375-v5-5-cta-footer.jpg
+Usabilidad: 33/40
+Craft: 17/20
+Copy (si vende): 19/20
 Fidelidad (si hubo referencia): N-A
 Veredicto: NO LISTA
 
-Detalle usabilidad (h1-h10): 3,4,3,3,3,3,2,3,3,3
-Detalle craft (jerarquía,profundidad,identidad,movimiento,encaje): 3,3,3,3,3
-Detalle copy (idea,especificidad,emoción,oferta,acción): 4,3,4,4,3
+Detalle usabilidad (h1-h10): h1:4 h2:4 h3:3 h4:4 h5:3 h6:4 h7:2 h8:3 h9:3 h10:3
+Detalle craft (jerarquía,profundidad,identidad,movimiento,encaje): 3,3,3,4,4
+Detalle copy (idea,especificidad,emoción,oferta,acción): 4,3,4,4,4
 
-Gate doble requerido: ≥36/40 usabilidad Y ≥16/20 craft → NO se cumple (30/40 y 15/20). Copy pasa su umbral (18/20, ningún eje ≤2) pero no sustituye el gate de usabilidad/craft.
+Gate doble requerido: ≥36/40 usabilidad Y ≥16/20 craft → NO se cumple (33/40, aunque craft 17/20 y copy 19/20 sí pasan). La usabilidad subió de 30→33 pero sigue 3 puntos bajo el umbral.
 
-Confirmación de los 3 defectos "atacados" en esta ronda:
-- Radio del FaqItem ahora usa var(--radius-card) (20px), coherente con el resto de tarjetas de la pantalla. Corregido.
-- El texto de garantía bajo cada plan quedó corto ("7 días, sin preguntas") y la explicación completa ("Garantía de 7 días...") vive solo en la sección dedicada. La repetición literal 3 veces ya no ocurre. Corregido.
-- La sección Oferta mantiene tinte propio y FAQ volvió a fondo base — ya no comparten exactamente el mismo fondo. Mejoró, pero ver defecto #2 abajo: la diferencia es apenas 4% de tinte, al límite de ser imperceptible en scroll rápido.
-
-Defectos previos NO atacados (confirmados, esperado): sigue sin demo animada del mecanismo de rollover (defecto #1 abajo) y el nav sticky sigue sin resaltar la sección visible (defecto #3 abajo).
+ESTADO DE LOS 5 DEFECTOS DE RONDA 4:
+1. Demo animada del mecanismo de rollover → RESUELTO. `DemoRollover` (visible en screenshot 2) muestra "Llamar al dentista" tachándose en "Ayer" y reapareciendo en "Hoy" en un ciclo de ~4s, con fallback estático en `prefers-reduced-motion`. Ataca directamente la objeción #1 del avatar.
+2. Separación Oferta/FAQ apenas 4% → MEJORADO / RESUELTO. El tinte subió a 8% (`color-mix(in oklab, var(--primary) 8%, var(--background))`) y la sección FAQ agrega `borderTop` hairline. En el screenshot 4 el cambio de fondo entre la tarjeta de garantía y "Preguntas frecuentes" ya es perceptible en scroll normal.
+3. Nav sticky sin resaltar sección activa → RESUELTO (verificado en código). `NavSeccionActiva` usa `IntersectionObserver` con `rootMargin: "-40% 0px -50% 0px"` y colorea/subraya el link de la sección visible. No verificable en screenshot estático, pero la lógica es correcta y cubre los 3 enlaces del nav.
+4. CTA "Empezar gratis" repetido 6+ veces sin variación → RESUELTO. Planes ahora dicen "Elegir mensual" / "Elegir anual" (screenshot 3) y el CTA final dice "Quiero mi primer día sin culpa" (screenshot 5). Nav y hero mantienen "Empezar gratis" (aceptable, son los puntos de entrada).
+5. Dos familias de radio (28px vs 20px) sin documentar → RESUELTO. FICHA-ARTE.md ahora documenta `--radius-xl` (28px, paneles grandes) como segundo tier intencional junto a `--radius-card` (20px, tarjetas), y el código usa el token en los 4 lugares que antes tenían el valor hardcodeado.
 
 TOP DEFECTOS (máx 5, ordenados por impacto):
-1. [Hero + sección "Solución" / #como-funciona] El mecanismo central que vende la app (rollover "tachado con cariño", nunca en rojo) sigue mostrándose solo en texto — el mockup del hero anima el anillo pero nunca muestra una tarea moviéndose/tachándose. Es la objeción #1 del avatar ("otra app milagrosa que voy a abandonar") y la ficha pide explícitamente resolverla mostrando el mecanismo, no prometiéndolo → animar en el mockup del hero (o en la tarjeta 03 de Solución) el instante en que la tarea de hoy se tacha suavemente y reaparece mañana.
-2. [Límite entre sección Oferta (#oferta) y FAQ (#faq), scroll 4→5] La separación de fondo entre ambas secciones es solo `color-mix(primary 4%, background)` vs fondo base — una diferencia de apenas 4% que un usuario que hace scroll normal difícilmente nota como "cambio de sección" (el defecto de ronda 3 mejoró pero no se resolvió del todo) → subir el tinte de Oferta a 6-8% o agregar un separador/borde visible entre ambas secciones.
-3. [Nav sticky superior, enlaces "Cómo funciona / Precio / Preguntas"] Ningún link cambia de estado al hacer scroll hacia su sección — el usuario no tiene forma de saber en qué parte de la página está sin mirar el contenido (heurística 6, reconocer vs recordar) → añadir un IntersectionObserver que marque con color-primary/subrayado el link de la sección visible.
-4. [CTA repetido: nav, hero, cada plan, CTA final] El texto "Empezar gratis" se repite literal 6+ veces sin variación — funciona pero no refuerza el beneficio específico en el momento de pago (plan mensual/anual) → en los CTA de los planes, usar una variante en primera persona y con beneficio concreto (ej. "Quiero mi Pase Cero Culpa") y dejar "Empezar gratis" solo en nav/hero.
-5. [Hero mockup / dark panel "No es falta de voluntad" / CTA final — todos `rounded-[1.75rem]` 28px — vs. tarjetas de Problema/Solución/Plan/FAQ — todas `var(--radius-card)` 20px] Conviven dos familias de radio sin que la ficha documente esto como sistema intencional (contenedor grande vs tarjeta) — un ojo entrenado lo nota al comparar screenshots 2 y 3 lado a lado → o unificar a un solo radio de "panel grande", o anotar explícitamente en FICHA-ARTE.md la jerarquía de 2 radios para que deje de leerse como accidente.
+1. [Heurística 7, código global de la landing] Sigue sin haber ningún atajo/mecanismo de eficiencia para el usuario que repite la visita (ni deep-link al plan, ni recordar preferencia) — es el eje más débil de usabilidad en ambas rondas → agregar un query param que preseleccione el plan (p. ej. `?plan=anual`) para campañas, o recordar la última sección vista.
+2. [Jerarquía, screenshots 2-3] Las tarjetas de "¿Te suena familiar?", "Solución" y cada "Plan" comparten casi el mismo tratamiento visual (surfaceGrad + borde 1-1.5px + radius-card) — al entrecerrar los ojos cuesta separar "card informativa" de "card de acción/compra" como dos niveles distintos → diferenciar el peso o el fondo de las cards de los planes (que SÍ llevan una decisión de dinero) del resto.
+3. [Profundidad, toda la pantalla] Solo existen 2 niveles reales de superficie (base lila + superficie con gradiente sutil) más 1 panel oscuro aislado ("No es falta de voluntad") — falta un nivel "hundido" consistente (inputs, badges, contadores) repetido en más secciones para que la sensación de profundidad no dependa de un solo bloque.
+4. [Planes, screenshot 3] "Elegir mensual" (fondo blanco + borde) luce visualmente secundario frente a "Elegir anual" (relleno sólido) — es jerarquía intencional por ser el plan recomendado, pero para un avatar con parálisis por decisión conviene reforzar con texto que ambos son igual de válidos (ya existe "Ahorra 42%" en Anual, podría bastar con un micro-ajuste de contraste en Mensual).
+5. [Overlay "N" circular, esquina inferior izquierda, presente en las 5 capturas] Confirmado en código: no pertenece a `page.tsx` ni a `landing-interactions.tsx` — es un indicador de herramienta de desarrollo (Next.js dev indicator), no un elemento de la UI real. No cuenta como defecto de diseño, pero verificar que no aparezca en capturas de producción/marketing.

@@ -398,9 +398,46 @@ Nota operativa de esta sesión: varios intentos de `npm run build` en paralelo (
 
 **Prueba E2E cerrada:** el usuario confirmó que entró a `/login` con el correo de la compra y vio su plan activo. Con esto, la cadena completa de pago quedó certificada en vivo: compra real → webhook → cuenta/plan actualizado → acceso → cancelación → webhook → estado actualizado. **Hotmart ya puede recibir pagos reales de verdad.**
 
+## Sesión 16 — Diseño: landing y onboarding (ronda 5, en curso)
+
+El usuario eligió invertir en el diseño de landing/onboarding pendiente desde Sesión 14. Se usó el skill `diseno` (FASE 1 Explorar → FASE 2 Diagnóstico → FASE 3 Plan presentado y aprobado por el usuario con "ok" → FASE 4 Ejecución). FICHA-ARTE.md no se redecidió (paleta/tipografía/modo intactos), solo se extendió con un segundo tier de radio documentado.
+
+**Hallazgo clave de la exploración:** los 5 defectos de ronda 4 (revisor-visual) seguían presentes sin tocar. Entre ellos, se identificó la causa raíz exacta del "2 familias de radio sin documentar": 4 instancias hardcodeadas de `rounded-[1.75rem]` (28px) en `page.tsx` + 1 en `onboarding/page.tsx`, todas sin usar el token `--radius-card` (20px). Se confirmó que `--radius-xl` en `globals.css` ya calcula exactamente 1.75rem — se adoptó ese token existente en vez de crear uno nuevo, y se documentó en FICHA-ARTE.md como tier intencional ("paneles hero/feature grandes").
+
+**Cambios ejecutados (landing `web/app/page.tsx` + `web/app/landing-interactions.tsx`):**
+1. Demo animada del mecanismo de rollover (`DemoRollover`, nuevo componente) — tarea tachada en "Ayer" que se mueve a "Hoy" en loop de 3.8s, respeta `prefers-reduced-motion`.
+2. Nav con sección activa al hacer scroll (`NavSeccionActiva`, IntersectionObserver).
+3. CTA variado: "Elegir mensual"/"Elegir anual" en los planes, "Quiero mi primer día sin culpa" en el CTA final (antes "Empezar gratis" repetido 6 veces).
+4. Separación Oferta/FAQ reforzada: tinte 4%→8% + hairline superior en FAQ.
+5. Los 5 `rounded-[1.75rem]` unificados a `rounded-[var(--radius-xl)]`.
+
+**Cambios ejecutados (onboarding `web/app/onboarding/page.tsx`):**
+1. Indicadores de progreso 4→2: se quitó el círculo numerado junto al título y el texto "Pregunta N de M"; queda solo barra + %. (`pos`/`total`/`posicionPregunta`/`preguntasIds` quedaron sin uso y se eliminaron.)
+2. El degradado del wrapper exterior pasó de mismo-tono (primary 9%→background) a salto tonal real (`--card` 85% blend blanco → background).
+3. Nota de privacidad: de mayúsculas+bold a normal-case con opacidad reducida.
+4. Chips sin seleccionar perdieron la sombra tintada (ahora casi plana); solo el seleccionado mantiene sombra con tinte de color.
+
+**Verificado:** `npx tsc --noEmit` limpio · `npm run build` limpio (22 rutas) · recorrido manual a 375px en dev server (hero, demo rollover, oferta/garantía, FAQ, CTA final, onboarding P1 con los 4 chips) sin errores de consola. Un bug propio detectado y corregido en el camino: un `<a` quedó como `<` al editar el nav (rompía el JSX) — se corrigió antes del build.
+
+**Veredicto del revisor-visual (ronda 5) — NO LISTA ninguna de las dos:**
+- Landing: usabilidad 33/40 (umbral 36), craft 17/20 ✓, copy 19/20 ✓. Los 5 defectos de ronda 4 quedaron RESUELTOS. Defectos nuevos (menores): falta deep-link de plan (`?plan=anual`, requeriría tocar lógica — fuera de alcance de esta sesión de diseño), mismo peso visual entre cards informativas y de compra, solo 2 niveles reales de profundidad.
+- Onboarding (pantalla P1): usabilidad 34/40 (umbral 36), craft 14/20 (umbral 16). 4 de 5 defectos de ronda 4 RESUELTOS; el degradado de profundidad quedó "parcialmente resuelto" porque más del 40% del viewport quedaba vacío debajo de los chips, aplanando la composición.
+
+**Rondas 6 y 7 del revisor sobre onboarding (el usuario pidió seguir iterando):**
+- Ronda 6: se centró verticalmente `PantallaPregunta` (se quitó un `flex-1` interno que anulaba el `justify-center` del padre) → usabilidad 34→35/40, craft 14→15/20. Mejora real pero insuficiente (1 punto bajo el umbral en cada eje).
+- Ronda 7: se sumó un glow radial + gradiente extendido al panel, y un mini anillo de progreso decorativo sobre el título (eco del anillo de Modo Enfoque) → **0 puntos de cambio** (35/40, 15/20 — idénticos). El revisor señaló que el anillo nuevo se leía como spinner de carga "congelado" y además tenía un bug real: su `strokeDashoffset` estaba fijo al 62% en las 4 preguntas, sin reflejar el `paso.pct` real — inconsistencia de datos entre dos indicadores de progreso en la misma pantalla. **Se quitó el anillo** (no se parcheó, se revirtió) tras el veredicto; se conservó el glow/gradiente (neutro, no dañaba). `tsc` limpio.
+
+**Ronda 8 (el usuario pidió explícitamente una "ronda decisiva"):** se probó un cambio estructural distinto — en vez de centrar el bloque título+chips+nota como grupo único, se separó la nota de privacidad y se ancló al fondo absoluto de la pantalla con `mt-auto` (patrón "contenido arriba, señal de confianza anclada abajo"). Resultado: **empeoró**, no mejoró — craft cayó de 15/20 a 12/20 (concentrar todo el vacío en una sola franja central de ~500px/31% del viewport se percibe peor que tenerlo repartido arriba/abajo). El revisor lo confirmó explícitamente y recomendó revertir. **Se revirtió** al layout exacto de ronda 6/7 (bloque centrado como grupo único) — verificado visualmente que coincide (`docs/revisiones/onboarding-p1-375-v9-final.jpg`), `tsc` limpio.
+
+De paso se verificó en código (no solo se asumió) el hallazgo h7 "no persisten las respuestas al navegar atrás" que el revisor repitió 4 rondas seguidas: es una lectura incorrecta del revisor — `respuestas` es un único estado centralizado en el componente padre (no se resetea por paso) y se pasa correctamente como `valor` a cada pregunta, que ya resalta la opción previamente elegida. No hay bug ahí; no se tocó.
+
+**Cierre de esta sesión de diseño — estado final aceptado (mejor resultado logrado en 8 rondas, ninguna ronda adicional de ajuste de espaciado recomendada por el revisor):**
+- Landing: usabilidad 33/40, craft 17/20 ✓, copy 19/20 ✓. Los 5 defectos de ronda 4 resueltos. NO LISTA formalmente (falta 3 puntos de usabilidad; defectos restantes son menores: deep-link de plan — toca lógica, fuera de alcance — y más niveles de profundidad visual).
+- Onboarding (P1): usabilidad 35/40, craft 15/20. 4 de 5 defectos de ronda 4 resueltos (el 5º, el vacío/profundidad, quedó parcialmente resuelto con rendimientos decrecientes confirmados). NO LISTA formalmente (falta 1 punto en cada eje). Para cerrarlo de verdad haría falta un elemento de marca nuevo y bien ejecutado en esa franja — no otro reacomodo de espaciado (3 intentos de ese tipo: ronda 6 dio +1/+1, ronda 7 dio +0/+0, ronda 8 dio −0/−3).
+
+Veredictos completos en `docs/revisiones/landing-veredicto.md` y `docs/revisiones/onboarding-p1-375-veredicto.md`.
+
 ## Siguiente paso
-Pendiente de menor prioridad: probar el camino de un comprador 100% nuevo (sin cuenta previa en la app) para confirmar que el correo de bienvenida con el enlace de acceso sí sale — la prueba de hoy fue con una cuenta que ya existía de antes, así que ese camino específico no se probó. Tampoco se probó con un payload real el REEMBOLSO ni el CONTRACARGO (solo compra y cancelación). Ninguno de los dos bloquea vender — se agendan para cuando haya una venta real de alguno de esos tipos, o antes si el usuario quiere forzarlo.
+Mostrarle al usuario el cierre honesto de esta sesión de diseño (ambas pantallas mejoraron de verdad pero ninguna cruza formalmente el gate) y preguntar cómo seguir: ¿commitear esta mejora tal cual (con la deuda de diseño documentada y anotada), diseñar desde cero un elemento de marca nuevo para el onboarding en otra sesión, o pasar a otra prioridad del proyecto? Nada de esto se ha commiteado todavía — pedir confirmación explícita antes de cualquier commit/push.
 
-Decidir con el usuario por dónde seguir: dominio propio, conectar Resend (reemplaza el correo de bienvenida de Supabase y quita el límite de 2/hora), o la sesión de diseño dedicada para landing/onboarding (pendiente desde Sesión 14).
-
-Pendientes de más largo plazo (no abandonados): los 4 hallazgos 🟡 recomendados de seguridad (Sesión 13); la sesión de diseño dedicada para landing/onboarding (demo animada del mecanismo, resolver indicadores de progreso redundantes, nav con estado activo, variar CTAs); conectar Resend (correo propio) para quitar el límite de 2 correos/hora y reemplazar el correo de bienvenida de Supabase. Después de certificar el pago de punta a punta, seguir con dominio y el resto de la secuencia maestra.
+Pendientes de más largo plazo (no abandonados): los 4 hallazgos 🟡 recomendados de seguridad (Sesión 13); probar el camino de un comprador 100% nuevo (correo de bienvenida) y los payloads reales de reembolso/contracargo de Hotmart (no bloquean vender); dominio propio; conectar Resend (correo propio, quita el límite de 2/hora de Supabase). Después de cerrar esta ronda de diseño, seguir con dominio y el resto de la secuencia maestra.

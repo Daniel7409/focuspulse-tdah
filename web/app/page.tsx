@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Reveal, Contador, AnilloAnimado, FaqItem } from "./landing-interactions";
+import { Reveal, Contador, AnilloAnimado, FaqItem, DemoRollover, NavSeccionActiva } from "./landing-interactions";
 
 const check = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5">
@@ -123,9 +123,15 @@ export default function LandingPage() {
             <span className="font-semibold text-muted-foreground text-xs ml-0.5">TDAH</span>
           </Link>
           <div className="flex items-center gap-5">
-            <a href="#como-funciona" className="hidden md:inline text-sm font-semibold text-muted-foreground">Cómo funciona</a>
-            <a href="#oferta" className="hidden md:inline text-sm font-semibold text-muted-foreground">Precio</a>
-            <a href="#faq" className="hidden md:inline text-sm font-semibold text-muted-foreground">Preguntas</a>
+            <div className="hidden md:flex items-center gap-5">
+              <NavSeccionActiva
+                ids={[
+                  { id: "como-funciona", href: "#como-funciona", label: "Cómo funciona" },
+                  { id: "oferta", href: "#oferta", label: "Precio" },
+                  { id: "faq", href: "#faq", label: "Preguntas" },
+                ]}
+              />
+            </div>
             <a
               href="#oferta"
               className="inline-flex items-center justify-center h-13 px-5 rounded-[var(--radius-btn)] font-bold text-sm text-primary-foreground active:scale-[.97] transition"
@@ -174,7 +180,7 @@ export default function LandingPage() {
         </div>
         <Reveal delayMs={280} className="mx-auto">
           <div
-            className="rounded-[1.75rem] p-7"
+            className="rounded-[var(--radius-xl)] p-7"
             style={{
               ...heroGrad,
               border: "1px solid color-mix(in oklab, var(--primary) 16%, transparent)",
@@ -254,7 +260,7 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="rounded-[1.75rem] text-background mt-8" style={darkPanel}>
+        <div className="rounded-[var(--radius-xl)] text-background mt-8" style={darkPanel}>
           <div className="px-6 md:px-10 py-8 md:py-12">
             <h3 className="text-xl md:text-2xl font-extrabold max-w-[24ch] leading-tight">
               No es falta de voluntad. Es <span style={{ color: "color-mix(in oklab, var(--background) 85%, var(--primary))" }}>el diseño</span> de las otras apps.
@@ -325,12 +331,21 @@ export default function LandingPage() {
             </Reveal>
           ))}
         </div>
+        <Reveal delayMs={240}>
+          <div
+            className="rounded-[var(--radius-card)] p-6 mt-5 max-w-[32rem] mx-auto"
+            style={{ ...surfaceGrad, border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }}
+          >
+            <p className="text-xs font-bold text-muted-foreground text-center mb-4">Así se ve en tu app</p>
+            <DemoRollover />
+          </div>
+        </Reveal>
       </section>
 
       {/* 4. OFERTA + GARANTÍA (antes eran 2 secciones; la "Tu app, por dentro" de 5 mockups
           se quitó — mismo mensaje ya lo dan "Solución" y el tour real dentro del onboarding,
           y recortaba el recorrido de scroll sin agregar nada nuevo a la decisión de compra) */}
-      <section id="oferta" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 4%, var(--background))" }}>
+      <section id="oferta" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 8%, var(--background))" }}>
       <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center leading-tight">Empieza gratis. Sigue por menos de un café al mes.</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 max-w-[47.5rem] mx-auto">
@@ -340,7 +355,7 @@ export default function LandingPage() {
             sufijoPrecio="/mes"
             nota="Se cobra mes a mes"
             items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "Cancela cuando quieras"]}
-            ctaTexto="Empezar gratis"
+            ctaTexto="Elegir mensual"
           />
           <Plan
             recomendado
@@ -349,11 +364,11 @@ export default function LandingPage() {
             sufijoPrecio="/mes"
             nota="Se cobra $34.99/año"
             items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "El precio más bajo del año"]}
-            ctaTexto="Empezar gratis"
+            ctaTexto="Elegir anual"
           />
         </div>
         <div
-          className="flex flex-col md:flex-row gap-4 items-center rounded-[1.75rem] p-6 mt-6 max-w-[47.5rem] mx-auto text-center md:text-left"
+          className="flex flex-col md:flex-row gap-4 items-center rounded-[var(--radius-xl)] p-6 mt-6 max-w-[47.5rem] mx-auto text-center md:text-left"
           style={{ ...surfaceGrad, border: "1.5px solid color-mix(in oklab, var(--primary) 38%, transparent)" }}
         >
           <div
@@ -376,7 +391,7 @@ export default function LandingPage() {
       </section>
 
       {/* 5. FAQ */}
-      <section id="faq" className="py-9 md:py-18">
+      <section id="faq" className="py-9 md:py-18" style={{ borderTop: "1px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }}>
         <div className="max-w-[70rem] mx-auto px-5">
         <h2 className="text-2xl md:text-2xl font-extrabold text-center">Preguntas frecuentes</h2>
         <div className="max-w-[45rem] mx-auto mt-8 flex flex-col gap-2.5">
@@ -395,7 +410,7 @@ export default function LandingPage() {
       {/* 6. CTA FINAL */}
       <section className="max-w-[70rem] mx-auto px-5 py-9 md:py-18">
         <div
-          className="text-center rounded-[1.75rem] px-6 py-14"
+          className="text-center rounded-[var(--radius-xl)] px-6 py-14"
           style={{ ...heroGrad, border: "1px solid color-mix(in oklab, var(--primary) 18%, transparent)" }}
         >
           <h2 className="text-2xl md:text-3xl font-extrabold max-w-[26ch] mx-auto leading-tight">
@@ -410,7 +425,7 @@ export default function LandingPage() {
                 boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
               }}
             >
-              Empezar gratis
+              Quiero mi primer día sin culpa
             </a>
           </div>
         </div>

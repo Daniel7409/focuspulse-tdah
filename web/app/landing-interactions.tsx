@@ -159,6 +159,143 @@ export function FaqItem({
   );
 }
 
+export function DemoRollover() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [fase, setFase] = useState<"inicial" | "tachando" | "movido">("inicial");
+  const [enVista, setEnVista] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      setFase("movido");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => setEnVista(e.isIntersecting)),
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!enVista) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+    let t1: ReturnType<typeof setTimeout>;
+    let t2: ReturnType<typeof setTimeout>;
+    let t3: ReturnType<typeof setTimeout>;
+    function ciclo() {
+      setFase("inicial");
+      t1 = setTimeout(() => setFase("tachando"), 700);
+      t2 = setTimeout(() => setFase("movido"), 1200);
+      t3 = setTimeout(ciclo, 3800);
+    }
+    ciclo();
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [enVista]);
+
+  const tareaPendiente = fase === "inicial";
+  const tachada = fase === "tachando" || fase === "movido";
+  const movida = fase === "movido";
+
+  return (
+    <div ref={ref} className="grid grid-cols-2 gap-3 text-left" aria-hidden="true">
+      <div className="rounded-[var(--radius-card)] p-3.5" style={{ background: "var(--card)", border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }}>
+        <p className="text-[0.6875rem] font-bold text-muted-foreground mb-2.5">Ayer</p>
+        <div
+          className="text-sm font-semibold flex items-center gap-2"
+          style={{
+            color: tareaPendiente ? "var(--foreground)" : "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+            transition: "color .4s cubic-bezier(.22,.9,.3,1)",
+          }}
+        >
+          <span
+            className="relative inline-block"
+            style={{
+              opacity: movida ? 0 : 1,
+              transform: movida ? "translateY(-0.25rem)" : "none",
+              transition: "opacity .4s cubic-bezier(.22,.9,.3,1), transform .4s cubic-bezier(.22,.9,.3,1)",
+            }}
+          >
+            Llamar al dentista
+            <span
+              className="absolute left-0 top-1/2 h-[1.5px] rounded-full"
+              style={{
+                background: "color-mix(in oklab, var(--primary) 55%, var(--muted-foreground))",
+                width: tachada ? "100%" : "0%",
+                transition: "width .5s cubic-bezier(.22,.9,.3,1)",
+              }}
+            />
+          </span>
+        </div>
+      </div>
+      <div className="rounded-[var(--radius-card)] p-3.5" style={{ background: "var(--card)", border: "1px solid color-mix(in oklab, var(--primary) 30%, transparent)" }}>
+        <p className="text-[0.6875rem] font-bold mb-2.5" style={{ color: "var(--primary)" }}>
+          Hoy
+        </p>
+        <div
+          className="text-sm font-semibold flex items-center gap-2"
+          style={{
+            color: "var(--foreground)",
+            opacity: movida ? 1 : 0,
+            transform: movida ? "none" : "translateY(0.375rem)",
+            transition: "opacity .4s cubic-bezier(.22,.9,.3,1) .1s, transform .4s cubic-bezier(.22,.9,.3,1) .1s",
+          }}
+        >
+          Llamar al dentista
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function NavSeccionActiva({ ids }: { ids: { id: string; href: string; label: string }[] }) {
+  const [activo, setActivo] = useState<string | null>(null);
+
+  useEffect(() => {
+    const secciones = ids.map(({ id }) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+    if (secciones.length === 0) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActivo(visible.target.id);
+      },
+      { rootMargin: "-40% 0px -50% 0px", threshold: 0 },
+    );
+    secciones.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [ids]);
+
+  return (
+    <>
+      {ids.map(({ id, href, label }) => (
+        <a
+          key={id}
+          href={href}
+          className="text-sm font-semibold transition-colors"
+          style={{
+            color: activo === id ? "var(--primary)" : "var(--muted-foreground)",
+            textDecorationLine: activo === id ? "underline" : "none",
+            textDecorationColor: "color-mix(in oklab, var(--primary) 50%, transparent)",
+            textDecorationThickness: "2px",
+            textUnderlineOffset: "0.25rem",
+            transition: "color .2s cubic-bezier(.22,.9,.3,1)",
+          }}
+        >
+          {label}
+        </a>
+      ))}
+    </>
+  );
+}
+
 export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [valor, setValor] = useState(0);
