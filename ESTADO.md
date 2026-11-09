@@ -435,7 +435,7 @@ De paso se verificó en código (no solo se asumió) el hallazgo h7 "no persiste
 - Landing: usabilidad 33/40, craft 17/20 ✓, copy 19/20 ✓. Los 5 defectos de ronda 4 resueltos. NO LISTA formalmente (falta 3 puntos de usabilidad; defectos restantes son menores: deep-link de plan — toca lógica, fuera de alcance — y más niveles de profundidad visual).
 - Onboarding (P1): usabilidad 35/40, craft 15/20. 4 de 5 defectos de ronda 4 resueltos (el 5º, el vacío/profundidad, quedó parcialmente resuelto con rendimientos decrecientes confirmados). NO LISTA formalmente (falta 1 punto en cada eje). Para cerrarlo de verdad haría falta un elemento de marca nuevo y bien ejecutado en esa franja — no otro reacomodo de espaciado (3 intentos de ese tipo: ronda 6 dio +1/+1, ronda 7 dio +0/+0, ronda 8 dio −0/−3).
 
-Veredictos completos en `docs/revisiones/landing-veredicto.md` y `docs/revisiones/onboarding-p1-375-veredicto.md`.
+Detalle de cada veredicto (ambos NO LISTA, ver "Problemas conocidos"): `docs/revisiones/landing-veredicto.md` y `docs/revisiones/onboarding-p1-375-veredicto.md`.
 
 ## Siguiente paso
 Mostrarle al usuario el cierre honesto de esta sesión de diseño (ambas pantallas mejoraron de verdad pero ninguna cruza formalmente el gate) y preguntar cómo seguir: ¿commitear esta mejora tal cual (con la deuda de diseño documentada y anotada), diseñar desde cero un elemento de marca nuevo para el onboarding en otra sesión, o pasar a otra prioridad del proyecto? Nada de esto se ha commiteado todavía — pedir confirmación explícita antes de cualquier commit/push.
