@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Reveal, Contador, AnilloAnimado, FaqItem, DemoRollover, NavSeccionActiva } from "./landing-interactions";
+import { Reveal, Contador, AnilloAnimado, FaqItem, DemoRollover, NavSeccionActiva, StickyCtaMobile } from "./landing-interactions";
 
 const check = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5">
@@ -55,11 +55,19 @@ function Plan({
   return (
     <div
       className="relative rounded-[var(--radius-card)] p-7"
-      style={{
-        ...surfaceGrad,
-        border: recomendado ? "1.5px solid var(--primary)" : "1.5px solid color-mix(in oklab, var(--muted-foreground) 32%, transparent)",
-        boxShadow: recomendado ? "0 1.125rem 2.75rem -1.125rem color-mix(in oklab, var(--primary) 35%, transparent)" : "0 0.625rem 1.625rem -1.125rem color-mix(in oklab, var(--primary) 25%, transparent)",
-      }}
+      style={
+        recomendado
+          ? {
+              border: "1.5px solid transparent",
+              backgroundImage: `${surfaceGrad.backgroundImage} padding-box, linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 35%, transparent)) border-box`,
+              boxShadow: "0 1.125rem 2.75rem -1.125rem color-mix(in oklab, var(--primary) 35%, transparent)",
+            }
+          : {
+              ...surfaceGrad,
+              border: "1.5px solid color-mix(in oklab, var(--muted-foreground) 32%, transparent)",
+              boxShadow: "0 0.625rem 1.625rem -1.125rem color-mix(in oklab, var(--primary) 25%, transparent)",
+            }
+      }
     >
       {recomendado && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-extrabold uppercase tracking-wide px-3.5 py-1 rounded-full">
@@ -162,6 +170,7 @@ export default function LandingPage() {
           <Reveal delayMs={210}>
             <div className="mt-6">
               <a
+                id="hero-cta"
                 href="#oferta"
                 className="inline-flex items-center justify-center h-13 px-6 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] transition"
                 style={{
@@ -347,16 +356,8 @@ export default function LandingPage() {
           y recortaba el recorrido de scroll sin agregar nada nuevo a la decisión de compra) */}
       <section id="oferta" className="py-9 md:py-18" style={{ background: "color-mix(in oklab, var(--primary) 8%, var(--background))" }}>
       <div className="max-w-[70rem] mx-auto px-5">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-center leading-tight">Empieza gratis. Sigue por menos de un café al mes.</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-center leading-tight">Empieza gratis. Sigue por <span className="text-primary">menos de un café al mes</span>.</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 max-w-[47.5rem] mx-auto">
-          <Plan
-            nombre="Mensual"
-            precio="$4.99"
-            sufijoPrecio="/mes"
-            nota="Se cobra mes a mes"
-            items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "Cancela cuando quieras"]}
-            ctaTexto="Elegir mensual"
-          />
           <Plan
             recomendado
             nombre="Anual"
@@ -365,6 +366,14 @@ export default function LandingPage() {
             nota="Se cobra $34.99/año"
             items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "El precio más bajo del año"]}
             ctaTexto="Elegir anual"
+          />
+          <Plan
+            nombre="Mensual"
+            precio="$4.99"
+            sufijoPrecio="/mes"
+            nota="Se cobra mes a mes"
+            items={["5 días de prueba gratis", "El Pase Cero Culpa completo", "Cancela cuando quieras"]}
+            ctaTexto="Elegir mensual"
           />
         </div>
         <div
@@ -452,6 +461,7 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+      <StickyCtaMobile heroCtaId="hero-cta" href="#oferta" texto="Empezar gratis" />
     </div>
   );
 }

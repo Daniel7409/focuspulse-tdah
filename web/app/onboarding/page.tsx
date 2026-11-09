@@ -258,7 +258,7 @@ function DialogoSalir({ onCancelar }: { onCancelar: () => void }) {
           transition: "opacity .2s ease, transform .2s cubic-bezier(.22,.9,.3,1)",
         }}
       >
-        <h2 className="text-lg font-bold">¿Salir ahora?</h2>
+        <h2 className="text-lg font-bold">¿Salir <span className="text-primary">ahora</span>?</h2>
         <p className="text-sm text-muted-foreground">Vas a perder lo que respondiste hasta aquí.</p>
         <div className="flex flex-col gap-2.5">
           <Link href="/" className="min-h-12 flex items-center justify-center rounded-[var(--radius-btn)] font-semibold text-sm" style={{ border: "1.5px solid color-mix(in oklab, var(--muted-foreground) 25%, transparent)" }}>
@@ -430,7 +430,7 @@ function PantallaSlider({ valor, onCambiar, onAvanzar }: { valor: number; onCamb
   const feedback = valor <= 2 ? "Arrancar suave está bien" : valor <= 5 ? "Meta realista para empezar" : "Ambiciosa — te acompañamos";
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-2xl font-bold leading-tight tracking-tight mb-7">¿Cuántos días a la semana quieres usar FocusPulse?</h1>
+      <h1 className="text-2xl font-bold leading-tight tracking-tight mb-7">¿Cuántos <span className="text-primary">días a la semana</span> quieres usar FocusPulse?</h1>
       <div className="text-center mb-7">
         <div className="text-4xl font-extrabold text-primary tabular-nums">{valor}</div>
         <div className="text-sm text-muted-foreground mt-0.5">días/semana</div>
@@ -475,7 +475,7 @@ function PantallaTarea({ onConfirmar, onAvanzar }: { onConfirmar: (v: string) =>
     <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
       <p className="text-xs font-bold uppercase tracking-wide text-primary">FocusPulse</p>
       <div className="w-full rounded-[var(--radius-card)] p-5.5 flex flex-col gap-3.5 bg-card" style={{ border: "1px solid color-mix(in oklab, var(--primary) 14%, transparent)" }}>
-        <h1 className="text-xl font-bold leading-snug">¿Qué es lo ÚNICO que tienes que hacer ahora?</h1>
+        <h1 className="text-xl font-bold leading-snug">¿Qué es lo <span className="text-primary">ÚNICO</span> que tienes que hacer ahora?</h1>
         <input
           autoFocus
           value={texto}

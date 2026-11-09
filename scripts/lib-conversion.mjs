@@ -241,7 +241,9 @@ function contarPalabras(text) {
 const INTERES = new Set(['h1', 'h2', 'h3', 'p', 'li', 'blockquote']);
 const ICON_RE = /^(svg|[A-Z][\w]*Icon)$/;
 const ICON_EXENTO_RE = /chevron|arrow|caret|close|^XIcon$/i;
-const LIST_CTX_RE = /(^|[\s_-])(list|items?|features?|benefits?|beneficios?|pain|bullets?|checklist|stack)([\s_-]|$)/i;
+// (?!-(center|start|end|baseline|stretch|reverse)) excluye las utilidades de alineación
+// de Tailwind (items-center, items-start…), que no tienen relación con "lista de ítems".
+const LIST_CTX_RE = /(^|[\s_-])(list|items?(?!-(?:center|start|end|baseline|stretch|reverse))|features?|benefits?|beneficios?|pain|bullets?|checklist|stack)([\s_-]|$)/i;
 const TW_CHIP_RE = /\b(size-(10|11|12)|w-(10|11|12)\b[\s\S]*\bh-(10|11|12))\b/;
 
 function analizarTsx(file, src) {
@@ -303,8 +305,13 @@ function analizarTsx(file, src) {
   while ((lm = litRe.exec(src)) !== null) {
     const val = (lm[1] ?? lm[2] ?? lm[3] ?? '').replace(/\s+/g, ' ').trim();
     if (!val.includes(' ') || !/\p{L}{3}/u.test(val)) continue;
+    // valor CSS (gradientes/funciones), no copy de venta — falso positivo frecuente en style={{}}
+    if (/^(linear-gradient|radial-gradient|repeating-linear-gradient|repeating-radial-gradient|conic-gradient|cubic-bezier|rgba?|hsla?|color-mix|calc|var)\(/.test(val)) continue;
+    // fuga de JSX/código capturada por el escáner de quotes (comillas desbalanceadas en otra parte
+    // del archivo hacen que el regex empareje dos comillas que no forman un string real)
+    if (/<\/?[A-Za-z][\w.]*[\s/>]|className=|=>\s*\(|\bfunction\b|\breturn\s*\(/.test(val)) continue;
     const ctx = src.slice(Math.max(0, lm.index - 45), lm.index);
-    if (/\b(import|from|require|href=|src=|url\(|class(Name)?\s*=)\s*$/.test(ctx)) continue;
+    if (/\b(import|from|require|href=|src=|url\(|class(Name)?\s*=)\s*\{?\s*$/.test(ctx)) continue;
     if (/\b(import|from)\b/.test(ctx)) continue;
     const dentro = elements.some((e) => lm.index >= e.innerStart && lm.index < e.innerEnd);
     if (dentro) continue;
@@ -488,7 +495,12 @@ const uiTsx = tsxAll.filter((f) => UI_DIR_RE.test(rel(f))) .length ? tsxAll.filt
 const esSuperficie = (f) => {
   const r = rel(f).replace(/\\/g, '/');
   if (/(landing|onboarding|paywall)/i.test(r)) return true;
-  return r === 'app/page.tsx' || r === 'src/app/page.tsx' || r === 'pages/index.tsx' || r === 'pages/index.jsx';
+  // sufijo, no ruta exacta desde la raíz del repo: el proyecto puede vivir en web/app/page.tsx,
+  // no solo en app/page.tsx si el script se corre desde la raíz del repo y no desde /web.
+  // Excluye .../app/app/page.tsx: esa es la ruta "/app" (pantalla principal interna), NO la
+  // landing raíz — misma doctrina de conversión no aplica (52/55 son de venta, no de la app logueada).
+  if (/\/app\/app\/page\.tsx$/.test(r)) return false;
+  return /(^|\/)app\/page\.tsx$/.test(r) || /(^|\/)pages\/index\.(tsx|jsx)$/.test(r);
 };
 const convFiles = uiTsx.filter(esSuperficie);
 const hayLanding = convFiles.some((f) => /landing/i.test(rel(f)) || /(^|\/)app\/page\.tsx$/.test(rel(f).replace(/\\/g, '/')) || /(^|\/)pages\/index\./.test(rel(f).replace(/\\/g, '/')));
@@ -588,7 +600,9 @@ function check1() {
 
 // ───────────────────────── CHECK 2: énfasis ─────────────────────────
 
-const ACCENT_CLS_RE = /accent|acento|mechanism|highlight|marker|resalt/i;
+// "primary" incluido: en este proyecto el span de énfasis usa el token de marca
+// (text-primary), no una clase semántica separada — es el mismo mecanismo, otro nombre.
+const ACCENT_CLS_RE = /accent|acento|mechanism|highlight|marker|resalt|\bprimary\b/i;
 const PALABRAS_VACIAS = new Set(['tu', 'tus', 'vos', 'el', 'la', 'los', 'las', 'un', 'una', 'de', 'que', 'y', 'o']);
 
 function check2() {
@@ -656,6 +670,13 @@ function check3() {
   for (const f of tsxAll) {
     const src = read(f); if (!src) continue;
     if (/GradientBorder/i.test(src)) { gbc++; hallazgos.push(`${rel(f)} — usa <GradientBorder…>`); }
+    // misma técnica pero inline (style={{ backgroundImage: "... padding-box, ... border-box" }}),
+    // el patrón más común en proyectos sin CSS por componente — no solo clases/CSS externo.
+    src.split('\n').forEach((line, idx) => {
+      if (/padding-box/.test(line) && /border-box/.test(line)) {
+        hallazgos.push(`${rel(f)}:${idx + 1} — style inline con padding-box/border-box`);
+      }
+    });
   }
   const crits = []; const warns = []; const infos = [];
   if (!hallazgos.length) {

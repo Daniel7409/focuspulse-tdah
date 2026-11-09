@@ -296,6 +296,45 @@ export function NavSeccionActiva({ ids }: { ids: { id: string; href: string; lab
   );
 }
 
+export function StickyCtaMobile({ heroCtaId, href, texto }: { heroCtaId: string; href: string; texto: string }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const heroCta = document.getElementById(heroCtaId);
+    if (!heroCta) return;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => setVisible(!e.isIntersecting)),
+      { threshold: 0 },
+    );
+    io.observe(heroCta);
+    return () => io.disconnect();
+  }, [heroCtaId]);
+
+  return (
+    <div
+      className="md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3"
+      style={{
+        backgroundImage: "linear-gradient(0deg, var(--background) 55%, transparent)",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(0.5rem)",
+        transition: "opacity .25s cubic-bezier(.22,.9,.3,1), transform .25s cubic-bezier(.22,.9,.3,1)",
+        pointerEvents: visible ? "auto" : "none",
+      }}
+    >
+      <a
+        href={href}
+        className="w-full flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] transition"
+        style={{
+          backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
+          boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
+        }}
+      >
+        {texto}
+      </a>
+    </div>
+  );
+}
+
 export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [valor, setValor] = useState(0);
