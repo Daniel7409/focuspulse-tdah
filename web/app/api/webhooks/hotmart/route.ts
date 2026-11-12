@@ -3,8 +3,14 @@ import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyHotmart } from "@/lib/hotmart-verify";
 import { estadoParaEvento, EVENTO_CAMBIO_DE_PLAN } from "@/lib/membership-fsm";
+import { sendMktEmail } from "@/lib/email/resend-client";
+import { emailPagoFallido, emailCancelacion } from "@/lib/email/templates";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://focuspulse-tdah.vercel.app";
+// ⚠️ Verificar que esta sea la URL real del panel de comprador de Hotmart antes de confiar del
+// todo — es la que la doctrina (58-RETENCION-DE-INGRESOS.md) da por defecto para "actualizar
+// método de pago", pero no se confirmó con una prueba real en esta sesión.
+const HOTMART_PANEL_COMPRADOR = "https://purchase.hotmart.com";
 const REPLAY_WINDOW_MS = 5 * 60 * 1000;
 
 // Códigos de oferta reales de los dos planes (del enlace de checkout que diste) — defensa
@@ -64,6 +70,16 @@ export async function POST(req: NextRequest) {
   const transactionId = payload.data?.purchase?.transaction;
   const eventId = payload.id ?? transactionId ?? `${evento}:${email ?? ""}:${marcaTiempo ?? ""}`;
   const offerCode = payload.data?.purchase?.offer?.code;
+
+  // ⚠️ TEMPORAL — depuración del evento de carrito abandonado: todavía no sabemos el nombre
+  // exacto que Hotmart le da en el payload real (solo lo vimos escrito en la UI). En vez de
+  // adivinar la forma de data.buyer/checkout_url, registramos el payload completo UNA vez con
+  // un envío de prueba desde Hotmart, lo leemos en los logs de Vercel, y con eso se escribe el
+  // manejo real — luego este bloque se borra.
+  if (/CART|CARRITO|ABANDON/i.test(evento)) {
+    console.log("DEBUG payload carrito abandonado", JSON.stringify(payloadCrudo));
+    return NextResponse.json({ received: true, debug: true });
+  }
 
   if (evento === EVENTO_CAMBIO_DE_PLAN) {
     // Cambio de plan nativo (mensual↔anual): no mueve el estado de la suscripción.
@@ -170,6 +186,33 @@ export async function POST(req: NextRequest) {
   const resultadoLog = resultado === "applied" || resultado === "duplicate" ? resultado : "illegal";
   await admin.from("webhook_log").insert({ event_id: eventId, type: evento, result: resultadoLog });
 
-  // 7. 200 siempre que se tomó una decisión (incluidos duplicado/ilegal) — Hotmart deja de reintentar.
+  // 7. Correo de retención — UNA sola vez por transición real (no en duplicados/ilegales), y
+  //    jamás bloquea la respuesta al webhook: un correo que falla no puede romper el registro
+  //    del pago, que ya quedó aplicado en la base de datos en el paso anterior.
+  if (resultado === "applied" && (nuevoEstado === "past_due" || nuevoEstado === "cancelled")) {
+    const { data: usuario } = await admin.auth.admin.getUserById(userId);
+    const correoDestino = usuario?.user?.email;
+    const nombreDestino = (usuario?.user?.user_metadata?.display_name as string | undefined) ?? "";
+    if (correoDestino) {
+      const plantilla =
+        nuevoEstado === "past_due"
+          ? emailPagoFallido(nombreDestino, HOTMART_PANEL_COMPRADOR)
+          : emailCancelacion(nombreDestino, `${SITE_URL}/paywall`);
+      // Se espera (await) aunque sea "best effort": en una función serverless, no esperar una
+      // promesa significa que Vercel puede cortarla a mitad de camino al devolver la respuesta.
+      try {
+        await sendMktEmail({
+          to: correoDestino,
+          subject: plantilla.subject,
+          preheader: plantilla.preheader,
+          bodyHtml: plantilla.bodyHtml,
+        });
+      } catch (e) {
+        console.error("error enviando correo de retención", { evento, mensaje: String(e) });
+      }
+    }
+  }
+
+  // 8. 200 siempre que se tomó una decisión (incluidos duplicado/ilegal) — Hotmart deja de reintentar.
   return NextResponse.json({ received: true, result: resultado });
 }
