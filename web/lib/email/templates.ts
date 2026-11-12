@@ -33,6 +33,30 @@ export function emailPagoFallido(nombre: string, linkActualizarPago: string) {
   };
 }
 
+/** Carrito abandonado — se dispara UNA vez, al confirmarse `PURCHASE_OUT_OF_SHOPPING_CART`. */
+export function emailCarritoAbandonado(nombre: string, linkCheckout: string) {
+  const subjectVariants = [
+    "¿Te quedó alguna duda sobre FocusPulse?",
+    "Tu lugar en FocusPulse TDAH sigue disponible",
+  ];
+  return {
+    subject: subjectVariants[0],
+    subjectVariants,
+    preheader: "Sin presión — si algo no te quedó claro, respondemos aquí mismo.",
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px">Hola ${nombre || ""},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Viste FocusPulse TDAH hace poco y no llegaste a completar tu compra. No hay ningún
+        apuro — si te quedó alguna duda (precio, cómo funciona, si te sirve para tu caso),
+        respóndenos este correo y te ayudamos directamente.
+      </p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Y si solo se te pasó, ${ENLACE(linkCheckout, "aquí puedes retomarlo")}.
+      </p>
+    `,
+  };
+}
+
 /** Win-back — se dispara UNA vez, al confirmarse `SUBSCRIPTION_CANCELLATION`. */
 export function emailCancelacion(nombre: string, linkReactivar: string) {
   const subjectVariants = [

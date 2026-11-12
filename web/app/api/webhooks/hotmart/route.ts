@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyHotmart } from "@/lib/hotmart-verify";
 import { estadoParaEvento, EVENTO_CAMBIO_DE_PLAN } from "@/lib/membership-fsm";
 import { sendMktEmail } from "@/lib/email/resend-client";
-import { emailPagoFallido, emailCancelacion } from "@/lib/email/templates";
+import { emailPagoFallido, emailCancelacion, emailCarritoAbandonado } from "@/lib/email/templates";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://focuspulse-tdah.vercel.app";
 // ⚠️ Verificar que esta sea la URL real del panel de comprador de Hotmart antes de confiar del
@@ -16,6 +16,14 @@ const REPLAY_WINDOW_MS = 5 * 60 * 1000;
 // Códigos de oferta reales de los dos planes (del enlace de checkout que diste) — defensa
 // de catálogo: un pago de un producto/oferta ajeno se ignora en vez de dar acceso.
 const OFERTAS_VALIDAS = new Set(["7kyzw7j1", "il5ezkuo"]);
+
+// Mismos enlaces de checkout del paywall (app/paywall/page.tsx) — se repiten aquí porque el
+// correo de carrito abandonado se manda desde el servidor, no desde ese componente de cliente.
+const CHECKOUT_URL_POR_OFERTA: Record<string, string> = {
+  "7kyzw7j1": "https://pay.hotmart.com/L108378734B?off=7kyzw7j1",
+  il5ezkuo: "https://pay.hotmart.com/L108378734B?off=il5ezkuo",
+};
+const EVENTO_CARRITO_ABANDONADO = "PURCHASE_OUT_OF_SHOPPING_CART";
 
 export async function POST(req: NextRequest) {
   const admin = createAdminClient();
@@ -71,14 +79,27 @@ export async function POST(req: NextRequest) {
   const eventId = payload.id ?? transactionId ?? `${evento}:${email ?? ""}:${marcaTiempo ?? ""}`;
   const offerCode = payload.data?.purchase?.offer?.code;
 
-  // ⚠️ TEMPORAL — depuración del evento de carrito abandonado: todavía no sabemos el nombre
-  // exacto que Hotmart le da en el payload real (solo lo vimos escrito en la UI). En vez de
-  // adivinar la forma de data.buyer/checkout_url, registramos el payload completo UNA vez con
-  // un envío de prueba desde Hotmart, lo leemos en los logs de Vercel, y con eso se escribe el
-  // manejo real — luego este bloque se borra.
-  if (/CART|CARRITO|ABANDON/i.test(evento)) {
-    console.log("DEBUG payload carrito abandonado", JSON.stringify(payloadCrudo));
-    return NextResponse.json({ received: true, debug: true });
+  // Carrito abandonado — nombre y payload confirmados con un envío de prueba real desde Hotmart
+  // (PURCHASE_OUT_OF_SHOPPING_CART, el comprador va en data.buyer igual que en una compra).
+  // No es una transición de estado de membresía: nunca crea cuenta (doctrina 18 — Hotmart ya
+  // capturó el dato en el checkout, no hay que pre-registrar al lead) y no pasa por el FSM.
+  if (evento === EVENTO_CARRITO_ABANDONADO) {
+    await admin.from("webhook_log").insert({ event_id: eventId, type: evento, result: email ? "applied" : "ignored" });
+    if (email) {
+      const linkCheckout = (offerCode && CHECKOUT_URL_POR_OFERTA[offerCode]) || `${SITE_URL}/paywall`;
+      const plantilla = emailCarritoAbandonado(nombre, linkCheckout);
+      try {
+        await sendMktEmail({
+          to: email,
+          subject: plantilla.subject,
+          preheader: plantilla.preheader,
+          bodyHtml: plantilla.bodyHtml,
+        });
+      } catch (e) {
+        console.error("error enviando correo de carrito abandonado", { mensaje: String(e) });
+      }
+    }
+    return NextResponse.json({ received: true, result: email ? "applied" : "ignored" });
   }
 
   if (evento === EVENTO_CAMBIO_DE_PLAN) {
