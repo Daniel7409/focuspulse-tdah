@@ -9,6 +9,63 @@ const ENLACE = (href: string, texto: string) => `
   <a href="${href}" style="color:#6E5A9E;font-weight:600;text-decoration:underline">${texto}</a>
 `;
 
+/** Bienvenida y activación — día 1: reforzar el mecanismo (rollover sin culpa) recién llegado. */
+export function emailBienvenidaD1(nombre: string, linkApp: string) {
+  return {
+    subject: "Un consejo para tu primer día en FocusPulse",
+    preheader: "Solo necesitas UNA tarea hoy — el resto puede esperar.",
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px">Hola ${nombre || ""},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Ayer entraste por primera vez a FocusPulse TDAH. Un consejo para que te sirva de verdad:
+        no intentes meter toda tu lista de pendientes — escribe SOLO la tarea más importante de hoy.
+        Lo demás, si no lo haces, pasa solo a mañana. Sin números rojos, sin culpa.
+      </p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        ${ENLACE(linkApp, "Entra y escribe tu única tarea de hoy")}.
+      </p>
+    `,
+  };
+}
+
+/** Bienvenida y activación — día 3: check-in breve, sin presión, oferta de ayuda real. */
+export function emailBienvenidaD3(nombre: string, linkApp: string) {
+  return {
+    subject: "¿Cómo te ha ido estos 3 días?",
+    preheader: "Si algo no te quedó claro, respóndenos este correo.",
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px">Hola ${nombre || ""},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Llevas 3 días con FocusPulse TDAH. Si ya le agarraste el ritmo, genial — si todavía no,
+        no pasa nada: el "Pase Cero Culpa" está para eso, no hay que ser perfecto desde el día 1.
+      </p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        ¿Algo no te quedó claro o no te funcionó como esperabas? Respóndenos este correo, lo
+        leemos de verdad. Y si quieres seguir, ${ENLACE(linkApp, "aquí está tu tarea de hoy")}.
+      </p>
+    `,
+  };
+}
+
+/** Bienvenida y activación — día 7: cierre de la primera semana, sin presión de venta. */
+export function emailBienvenidaD7(nombre: string, linkApp: string) {
+  return {
+    subject: "Completaste tu primera semana",
+    preheader: "Una semana con una app nueva ya dice algo — sigamos.",
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px">Hola ${nombre || ""},</p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Ya llevas una semana con FocusPulse TDAH — para alguien con TDAH, seguir probando algo
+        una semana entera ya es una victoria real, no es poca cosa.
+      </p>
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
+        Si te está sirviendo, lo mejor que puedes hacer es seguir con la misma rutina: una sola
+        tarea, cada día. ${ENLACE(linkApp, "Sigue con tu racha")}.
+      </p>
+    `,
+  };
+}
+
 /** Dunning — se dispara UNA vez, al primer momento en que un pago queda `past_due`. */
 export function emailPagoFallido(nombre: string, linkActualizarPago: string) {
   const subjectVariants = [
