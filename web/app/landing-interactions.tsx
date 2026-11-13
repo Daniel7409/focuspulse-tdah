@@ -209,19 +209,14 @@ export function DemoRollover() {
     <div ref={ref} className="grid grid-cols-2 gap-3 text-left" aria-hidden="true">
       <div className="rounded-[var(--radius-card)] p-3.5" style={{ background: "var(--card)", border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }}>
         <p className="text-[0.6875rem] font-bold text-muted-foreground mb-2.5">Ayer</p>
-        <div
-          className="text-sm font-semibold flex items-center gap-2"
-          style={{
-            color: tareaPendiente ? "var(--foreground)" : "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
-            transition: "color .4s cubic-bezier(.22,.9,.3,1)",
-          }}
-        >
+        <div className="relative text-sm font-semibold">
           <span
-            className="relative inline-block"
+            className="relative inline-flex items-center gap-2"
             style={{
+              color: tareaPendiente ? "var(--foreground)" : "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
               opacity: movida ? 0 : 1,
               transform: movida ? "translateY(-0.25rem)" : "none",
-              transition: "opacity .4s cubic-bezier(.22,.9,.3,1), transform .4s cubic-bezier(.22,.9,.3,1)",
+              transition: "opacity .4s cubic-bezier(.22,.9,.3,1), transform .4s cubic-bezier(.22,.9,.3,1), color .4s cubic-bezier(.22,.9,.3,1)",
             }}
           >
             Llamar al dentista
@@ -233,6 +228,19 @@ export function DemoRollover() {
                 transition: "width .5s cubic-bezier(.22,.9,.3,1)",
               }}
             />
+          </span>
+          <span
+            className="absolute inset-0 flex items-center gap-1.5"
+            style={{
+              color: "color-mix(in oklab, var(--primary) 55%, var(--muted-foreground))",
+              opacity: movida ? 1 : 0,
+              transition: "opacity .4s cubic-bezier(.22,.9,.3,1) .15s",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            Nada pendiente
           </span>
         </div>
       </div>

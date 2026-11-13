@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { registrarEvento } from "@/lib/eventos-actions";
+import { DemoRollover } from "../landing-interactions";
 
 type Respuestas = {
   p1: string | null;
@@ -147,7 +148,12 @@ export default function OnboardingPage() {
   function avanzar() {
     if (idx === PASOS.length - 1) {
       void registrarEvento("onboarding_completado");
-      router.push("/paywall");
+      // Deep-link de plan (hallazgo del revisor-visual, ronda 5): si llegó desde la landing con
+      // un plan elegido (?plan=anual|mensual), se lleva esa elección hasta el paywall en vez de
+      // perderla — se lee con window.location en vez de useSearchParams para no exigirle a esta
+      // página un <Suspense> solo por esto (sigue pudiendo pre-renderse estática).
+      const planElegido = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("plan") : null;
+      router.push(planElegido === "mensual" || planElegido === "anual" ? `/paywall?plan=${planElegido}` : "/paywall");
       return;
     }
     setHistorial((h) => [...h, idx]);
@@ -373,6 +379,25 @@ function PantallaPregunta({
           <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-normal text-muted-foreground/70 entrada-escalonada" style={{ animationDelay: "380ms" }}>
             <LockIcon /> Tus respuestas son privadas — nunca se comparten
           </p>
+          {paso.id === "p1" && (
+            // Elemento de marca nuevo para el vacío bajo los chips en esta pantalla (hallazgo
+            // repetido del revisor-visual tras 3 intentos de solo reacomodar espaciado): en vez
+            // de otro adorno genérico, se reutiliza la demo YA aprobada del "Pase Cero Culpa"
+            // (landing-interactions.tsx) — responde directo a la pregunta que se acaba de hacer
+            // ("tu mayor fuente de parálisis") mostrando la respuesta de la app en movimiento.
+            <div
+              className="rounded-[var(--radius-card)] p-5 mt-7 entrada-escalonada"
+              style={{
+                background: "color-mix(in oklab, var(--background) 92%, black)",
+                border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)",
+                boxShadow: "inset 0 0.125rem 0.5rem color-mix(in oklab, var(--foreground) 8%, transparent)",
+                animationDelay: "460ms",
+              }}
+            >
+              <p className="text-xs font-bold text-muted-foreground text-center mb-3.5">Así te vas a sentir con el Pase Cero Culpa</p>
+              <DemoRollover />
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">

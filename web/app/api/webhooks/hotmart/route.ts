@@ -145,6 +145,15 @@ export async function POST(req: NextRequest) {
       await admin.from("webhook_log").insert({ event_id: eventId, type: evento, result: "error" });
       return NextResponse.json({ error: "missing buyer email" }, { status: 400 });
     }
+
+    // Defensa contra prueba gratis repetida con alias de correo (hallazgo 🟡 de la auditoría de
+    // seguridad): antes de crear una cuenta NUEVA, ver si ya existe una cuenta real con el MISMO
+    // buzón bajo otro alias (p. ej. carlos+1@gmail.com / carlos+2@gmail.com) — si existe, se
+    // reutiliza esa cuenta en vez de crear una segunda con un trial nuevo.
+    const { data: aliasExistente } = await admin.rpc("resolver_perfil_por_alias", { p_email: email });
+    if (aliasExistente) {
+      userId = aliasExistente as string;
+    } else {
     const { data: creado, error: errorCreacion } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { display_name: nombre || undefined },
       redirectTo: `${SITE_URL}/auth/callback`,
@@ -163,6 +172,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       userId = creado.user.id;
+    }
     }
   }
 

@@ -26,6 +26,10 @@ export default function PaywallPage() {
 
   useEffect(() => {
     void registrarEvento("paywall_visto");
+    // Deep-link de plan: respeta la elección que se hizo en la landing o el onboarding en vez
+    // de resetear siempre a "Anual" — mismo patrón de leer window.location sin useSearchParams.
+    const planElegido = new URLSearchParams(window.location.search).get("plan");
+    if (planElegido === "mensual" || planElegido === "anual") setPlan(planElegido);
   }, []);
 
   function irAlCheckout() {

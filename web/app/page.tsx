@@ -89,7 +89,7 @@ function Plan({
         ))}
       </ul>
       <Link
-        href="/onboarding"
+        href={`/onboarding?plan=${recomendado ? "anual" : "mensual"}`}
         className={`w-full mt-5 flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base transition active:scale-[.97] ${
           recomendado ? "text-primary-foreground" : "bg-card text-primary"
         }`}
@@ -329,8 +329,10 @@ export default function LandingPage() {
                 className="rounded-[var(--radius-card)] p-6"
                 style={{
                   ...surfaceGrad,
-                  border: "1.5px solid color-mix(in oklab, var(--primary) 35%, transparent)",
-                  boxShadow: shadowTinta,
+                  // Antes llevaba borde en acento + sombra tintada, con el MISMO peso visual que
+                  // las tarjetas de compra de más abajo (hallazgo del revisor-visual) — estas son
+                  // solo informativas, así que bajan a un borde neutro sin sombra de color.
+                  border: "1px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)",
                 }}
               >
                 <p className="text-xs font-extrabold text-primary">{p.num}</p>
@@ -343,7 +345,14 @@ export default function LandingPage() {
         <Reveal delayMs={240}>
           <div
             className="rounded-[var(--radius-card)] p-6 mt-5 max-w-[32rem] mx-auto"
-            style={{ ...surfaceGrad, border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)" }}
+            style={{
+              // 3er nivel de profundidad (hallazgo del revisor-visual: "solo 2 niveles reales").
+              // base = fondo de la sección · elevado = tarjetas (surfaceGrad) · hundido = este panel,
+              // como una pantalla encajada dentro de la tarjeta — sombra interior en vez de exterior.
+              background: "color-mix(in oklab, var(--background) 92%, black)",
+              border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)",
+              boxShadow: "inset 0 0.125rem 0.5rem color-mix(in oklab, var(--foreground) 8%, transparent)",
+            }}
           >
             <p className="text-xs font-bold text-muted-foreground text-center mb-4">Así se ve en tu app</p>
             <DemoRollover />
