@@ -21,6 +21,7 @@ type PasoPregunta = {
   id: string;
   pct: number;
   titulo: React.ReactNode;
+  tituloTexto: string;
   sub?: string;
   key: "p1" | "p2" | "p4";
   chips: Chip[];
@@ -53,6 +54,7 @@ const PASOS: Paso[] = [
         ¿Cuál es tu mayor fuente de <span className="text-primary">parálisis</span> hoy?
       </>
     ),
+    tituloTexto: "¿Cuál es tu mayor fuente de parálisis hoy?",
     sub: "Esto decide qué tanto simplificamos tu primer día",
     key: "p1",
     chips: [
@@ -71,6 +73,7 @@ const PASOS: Paso[] = [
         ¿En qué momento del día más <span className="text-primary">se te apaga</span> el cerebro?
       </>
     ),
+    tituloTexto: "¿En qué momento del día más se te apaga el cerebro?",
     key: "p2",
     chips: [
       { label: "Al despertar" },
@@ -99,9 +102,10 @@ const PASOS: Paso[] = [
     pct: 72,
     titulo: (
       <>
-        ¿Ya intentaste otras apps de productividad... y las <span className="text-primary">abandonaste</span>?
+        ¿Ya probaste otras apps... y las <span className="text-primary">abandonaste</span>?
       </>
     ),
+    tituloTexto: "¿Ya probaste otras apps... y las abandonaste?",
     key: "p4",
     chips: [
       { label: "Sí, Notion/Todoist/Trello… y las abandoné" },
@@ -330,11 +334,11 @@ function PantallaPregunta({
     <div className="flex flex-col" style={{ opacity: saliendo ? 0 : 1, transition: "opacity .3s ease" }}>
       <div className="mb-7 entrada-escalonada">
         <h1 className="text-2xl font-bold leading-tight tracking-tight">{paso.titulo}</h1>
-        {paso.sub && <p className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
+        {paso.sub && <p className="text-[0.8125rem] font-medium text-muted-foreground mt-2 leading-relaxed entrada-escalonada" style={{ animationDelay: "60ms" }}>{paso.sub}</p>}
       </div>
 
       {!freeform ? (
-        <div className="flex flex-col gap-3" role="radiogroup" aria-label={typeof paso.titulo === "string" ? paso.titulo : undefined}>
+        <div className="flex flex-col gap-3" role="radiogroup" aria-label={paso.tituloTexto}>
           {paso.chips.map((c, i) => (
             <button
               key={c.label}
@@ -349,10 +353,18 @@ function PantallaPregunta({
                   const dir = e.key === "ArrowDown" ? 1 : -1;
                   const siguiente = (i + dir + paso.chips.length) % paso.chips.length;
                   chipRefs.current[siguiente]?.focus();
+                  // Comportamiento nativo de radiogroup: la flecha mueve Y marca la opción
+                  // como elegida (para poder comparar varias sin comprometerse), pero SOLO
+                  // confirmar (clic/Enter/Espacio) dispara el avance — la ronda anterior
+                  // llamaba elegirChip() completo acá, que también auto-avanzaba en 320ms,
+                  // dejando sin margen para comparar opciones (hallazgo del revisor-visual).
+                  const chipSiguiente = paso.chips[siguiente];
+                  if (!chipSiguiente.freeform) onElegir(chipSiguiente.label);
                 }
               }}
               role="radio"
               aria-checked={valor === c.label}
+              tabIndex={valor === c.label || (!valor && i === 0) ? 0 : -1}
               className="flex items-center gap-3 w-full min-h-14.5 px-4.5 rounded-[var(--radius-btn)] text-left transition active:scale-[.98] entrada-escalonada disabled:pointer-events-none"
               style={{
                 border: valor === c.label ? "1.5px solid var(--primary)" : "1.5px solid color-mix(in oklab, var(--primary) 14%, transparent)",
@@ -367,7 +379,7 @@ function PantallaPregunta({
               <span
                 className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
                 style={{
-                  border: valor === c.label ? "none" : "1.5px solid color-mix(in oklab, var(--muted-foreground) 30%, transparent)",
+                  border: valor === c.label ? "none" : "1.5px solid color-mix(in oklab, var(--muted-foreground) 42%, transparent)",
                   background: valor === c.label ? "var(--primary)" : "transparent",
                   color: "var(--primary-foreground)",
                 }}
@@ -376,15 +388,15 @@ function PantallaPregunta({
               </span>
             </button>
           ))}
-          <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-normal text-muted-foreground/70 entrada-escalonada" style={{ animationDelay: "380ms" }}>
+          <p className="flex items-center justify-center gap-1.5 mt-7 text-[0.6875rem] font-normal text-muted-foreground/70 entrada-escalonada" style={{ animationDelay: "380ms" }}>
             <LockIcon /> Tus respuestas son privadas — nunca se comparten
           </p>
-          {paso.id === "p1" && (
-            // Elemento de marca nuevo para el vacío bajo los chips en esta pantalla (hallazgo
-            // repetido del revisor-visual tras 3 intentos de solo reacomodar espaciado): en vez
-            // de otro adorno genérico, se reutiliza la demo YA aprobada del "Pase Cero Culpa"
-            // (landing-interactions.tsx) — responde directo a la pregunta que se acaba de hacer
-            // ("tu mayor fuente de parálisis") mostrando la respuesta de la app en movimiento.
+          {(paso.id === "p1" || paso.id === "p2" || paso.id === "p4") && (
+            // Elemento de marca para el vacío bajo los chips en esta pantalla: se reutiliza la
+            // demo YA aprobada del "Pase Cero Culpa" (landing-interactions.tsx), replicada en los
+            // 3 pasos tipo "pregunta" (p1/p2/p4) para no dejar una inconsistencia entre pasos —
+            // pero con una tarea de ejemplo DISTINTA en cada uno (hallazgo del revisor-visual: el
+            // mismo ejemplo 3 veces seguidas se sentía relleno, no refuerzo).
             <div
               className="rounded-[var(--radius-card)] p-5 mt-7 entrada-escalonada"
               style={{
@@ -394,8 +406,12 @@ function PantallaPregunta({
                 animationDelay: "460ms",
               }}
             >
-              <p className="text-xs font-bold text-muted-foreground text-center mb-3.5">Así te vas a sentir con el Pase Cero Culpa</p>
-              <DemoRollover />
+              <p className="text-[0.6875rem] font-bold text-muted-foreground text-center mb-3.5">Así te vas a sentir con el Pase Cero Culpa</p>
+              <DemoRollover
+                tarea={
+                  paso.id === "p1" ? "Llamar al dentista" : paso.id === "p2" ? "Responder el correo del cliente" : "Organizar el escritorio"
+                }
+              />
             </div>
           )}
         </div>

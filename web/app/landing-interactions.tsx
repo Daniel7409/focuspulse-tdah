@@ -22,6 +22,11 @@ export function Reveal({
       setVisible(true);
       return;
     }
+    // Margen generoso: en un salto de scroll grande (flick rápido, o un dispositivo de gama
+    // media que saltea cuadros) la sección puede cruzar el viewport entero sin que el navegador
+    // llegue a pintar un frame donde esté parcialmente visible -> con threshold 0.2 y sin margen
+    // eso la deja invisible para siempre. Un margen del 30% agranda la zona de detección a ~1.6x
+    // el viewport, así el salto tendría que ser enorme para saltársela igual.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -31,7 +36,7 @@ export function Reveal({
           }
         });
       },
-      { threshold: 0.2 },
+      { threshold: 0, rootMargin: "30% 0px 30% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -84,7 +89,7 @@ export function AnilloAnimado({
           }
         });
       },
-      { threshold: 0.4 },
+      { threshold: 0, rootMargin: "30% 0px 30% 0px" },
     );
     io.observe(el as unknown as Element);
     return () => io.disconnect();
@@ -132,8 +137,17 @@ export function FaqItem({
     >
       <button
         onClick={() => setAbierto((a) => !a)}
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+          e.preventDefault();
+          const botones = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-faq-btn]"));
+          const i = botones.indexOf(e.currentTarget);
+          const siguiente = botones[(i + (e.key === "ArrowDown" ? 1 : -1) + botones.length) % botones.length];
+          siguiente?.focus();
+        }}
+        data-faq-btn
         aria-expanded={abierto}
-        className="w-full cursor-pointer font-bold text-sm flex justify-between items-center text-left"
+        className="w-full cursor-pointer font-bold text-sm flex justify-between items-center text-left rounded-[var(--radius-btn)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
       >
         {pregunta}
         <svg
@@ -159,7 +173,7 @@ export function FaqItem({
   );
 }
 
-export function DemoRollover() {
+export function DemoRollover({ tarea = "Llamar al dentista" }: { tarea?: string } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const [fase, setFase] = useState<"inicial" | "tachando" | "movido">("inicial");
   const [enVista, setEnVista] = useState(false);
@@ -219,7 +233,7 @@ export function DemoRollover() {
               transition: "opacity .4s cubic-bezier(.22,.9,.3,1), transform .4s cubic-bezier(.22,.9,.3,1), color .4s cubic-bezier(.22,.9,.3,1)",
             }}
           >
-            Llamar al dentista
+            {tarea}
             <span
               className="absolute left-0 top-1/2 h-[1.5px] rounded-full"
               style={{
@@ -248,16 +262,28 @@ export function DemoRollover() {
         <p className="text-[0.6875rem] font-bold mb-2.5" style={{ color: "var(--primary)" }}>
           Hoy
         </p>
-        <div
-          className="text-sm font-semibold flex items-center gap-2"
-          style={{
-            color: "var(--foreground)",
-            opacity: movida ? 1 : 0,
-            transform: movida ? "none" : "translateY(0.375rem)",
-            transition: "opacity .4s cubic-bezier(.22,.9,.3,1) .1s, transform .4s cubic-bezier(.22,.9,.3,1) .1s",
-          }}
-        >
-          Llamar al dentista
+        <div className="relative text-sm font-semibold">
+          <span
+            className="italic"
+            style={{
+              color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+              opacity: movida ? 0 : 0.45,
+              transition: "opacity .4s cubic-bezier(.22,.9,.3,1)",
+            }}
+          >
+            Esperando el cierre del día
+          </span>
+          <span
+            className="absolute inset-0 flex items-center"
+            style={{
+              color: "var(--foreground)",
+              opacity: movida ? 1 : 0,
+              transform: movida ? "none" : "translateY(0.375rem)",
+              transition: "opacity .4s cubic-bezier(.22,.9,.3,1) .1s, transform .4s cubic-bezier(.22,.9,.3,1) .1s",
+            }}
+          >
+            {tarea}
+          </span>
         </div>
       </div>
     </div>
@@ -331,7 +357,7 @@ export function StickyCtaMobile({ heroCtaId, href, texto }: { heroCtaId: string;
     >
       <a
         href={href}
-        className="w-full flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] transition"
+        className="w-full flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] hover:brightness-[1.04] hover:-translate-y-[0.0625rem] transition-[transform,filter] duration-200"
         style={{
           backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
           boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
@@ -372,7 +398,7 @@ export function Contador({ objetivo, sufijo = "" }: { objetivo: number; sufijo?:
           }
         });
       },
-      { threshold: 0.5 },
+      { threshold: 0, rootMargin: "30% 0px 30% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

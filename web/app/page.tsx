@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { Reveal, Contador, AnilloAnimado, FaqItem, DemoRollover, NavSeccionActiva, StickyCtaMobile } from "./landing-interactions";
 
-const check = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5">
-    <path d="M20 6 9 17l-5-5" />
+// Dispositivo ownable de la marca (el "tachado con cariño" del rollover) repetido como viñeta,
+// en vez del check genérico — para que la tarjeta de precio hable el mismo idioma visual que
+// el resto de la app (hallazgo del revisor-visual: la identidad solo vivía en 2 de 7 secciones).
+const strikeMark = (size: number) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.6" strokeLinecap="round" className="shrink-0">
+    <path d="M4 12.5c4-1.2 7-1.2 8-1.1 1 .1 2.6.6 3 1.6.4 1-.6 2-2 2.3-2 .4-5-.4-9-2.8" />
   </svg>
 );
 
@@ -83,15 +86,17 @@ function Plan({
       <ul className="mt-4.5 flex flex-col gap-2.5">
         {items.map((it) => (
           <li key={it} className="flex gap-2 items-start text-sm text-foreground">
-            {check}
+            <span className="mt-0.5">{strikeMark(15)}</span>
             {it}
           </li>
         ))}
       </ul>
       <Link
         href={`/onboarding?plan=${recomendado ? "anual" : "mensual"}`}
-        className={`w-full mt-5 flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base transition active:scale-[.97] ${
-          recomendado ? "text-primary-foreground" : "bg-card text-primary"
+        className={`w-full mt-5 flex items-center justify-center h-13 rounded-[var(--radius-btn)] font-bold text-base transition-[transform,filter,background-color] duration-200 active:scale-[.97] ${
+          recomendado
+            ? "text-primary-foreground hover:brightness-[1.04] hover:-translate-y-[0.0625rem]"
+            : "bg-card text-primary hover:bg-[color-mix(in_oklab,var(--primary)_6%,var(--card))]"
         }`}
         style={
           recomendado
@@ -113,7 +118,7 @@ function Plan({
 
 export default function LandingPage() {
   return (
-    <div className="bg-background text-foreground">
+    <div className="bg-background text-foreground pb-[5.5rem] md:pb-0">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2.5 focus:rounded-[var(--radius-btn)] focus:text-sm focus:font-bold"
@@ -142,7 +147,7 @@ export default function LandingPage() {
             </div>
             <a
               href="#oferta"
-              className="inline-flex items-center justify-center h-13 px-5 rounded-[var(--radius-btn)] font-bold text-sm text-primary-foreground active:scale-[.97] transition"
+              className="inline-flex items-center justify-center h-13 px-5 rounded-[var(--radius-btn)] font-bold text-sm text-primary-foreground active:scale-[.97] hover:brightness-[1.04] hover:-translate-y-[0.0625rem] transition-[transform,filter] duration-200"
               style={{
                 backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
                 boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
@@ -172,7 +177,7 @@ export default function LandingPage() {
               <a
                 id="hero-cta"
                 href="#oferta"
-                className="inline-flex items-center justify-center h-13 px-6 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] transition"
+                className="w-full md:w-auto flex md:inline-flex items-center justify-center h-13 px-6 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] hover:brightness-[1.04] hover:-translate-y-[0.0625rem] transition-[transform,filter] duration-200"
                 style={{
                   backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
                   boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
@@ -181,7 +186,7 @@ export default function LandingPage() {
                 Empezar gratis
               </a>
               <p className="text-xs text-muted-foreground mt-2.5">Prueba gratis 5 días · sin tarjeta · cancela cuando quieras</p>
-              <a href="#oferta" className="inline-block text-xs font-bold text-primary mt-2.5 underline-offset-2 hover:underline">
+              <a href="#oferta" className="inline-block text-sm font-bold text-primary mt-2.5 underline-offset-2 hover:underline">
                 Ver el precio →
               </a>
             </div>
@@ -224,13 +229,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-9">
           {[
             {
-              icon: (
-                <>
-                  <path d="M12 9v4" />
-                  <path d="M12 17h.01" />
-                  <circle cx="12" cy="12" r="9" />
-                </>
-              ),
+              icon: <path d="M3 16l3-7 3 7 3-9 3 9 3-7 3 7" strokeWidth="2.6" />,
               texto: (
                 <>
                   ¿Abres tu lista y sientes un <span className="text-primary">golpe de ansiedad</span> al ver todo en rojo?
@@ -238,23 +237,26 @@ export default function LandingPage() {
               ),
             },
             {
-              icon: (
-                <>
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 7v5l3 2" />
-                </>
-              ),
+              icon: <path d="M19 7c-3-3-9-3-12 1s-1 10 5 10c4 0 6-3 5-6" strokeWidth="2.6" />,
               texto: "¿Te saltaste un día y ahora evitas abrir la app por miedo a lo acumulado?",
             },
             {
-              icon: <path d="m12 2 2.6 6.9L22 9.3l-5.4 4.6 1.8 7.1L12 17l-6.4 4 1.8-7.1L2 9.3l7.4-.4Z" />,
+              icon: (
+                <>
+                  <path d="M12 12l4-3" strokeWidth="2.6" />
+                  <path d="M12 12l-3-4" strokeWidth="2.6" />
+                  <path d="M12 12l-4 3" strokeWidth="2.6" />
+                  <path d="M12 12l3 5" strokeWidth="2.6" />
+                  <path d="M12 12l5 1" strokeWidth="2.6" />
+                </>
+              ),
               texto: "¿Empiezas cinco cosas a la vez y no terminas ninguna?",
             },
             {
               icon: (
                 <>
-                  <path d="M3 3v18h18" />
-                  <path d="M7 14l4-4 3 3 5-6" />
+                  <path d="M3 16c3-2 5-3 7-4" strokeWidth="2.6" />
+                  <path d="M10 12c3-1.5 6-2 8-1" strokeWidth="2.6" strokeDasharray="2 3" opacity="0.4" />
                 </>
               ),
               texto: "¿Ya probaste Notion, Todoist o Trello... y los abandonaste a los pocos días?",
@@ -349,9 +351,9 @@ export default function LandingPage() {
               // 3er nivel de profundidad (hallazgo del revisor-visual: "solo 2 niveles reales").
               // base = fondo de la sección · elevado = tarjetas (surfaceGrad) · hundido = este panel,
               // como una pantalla encajada dentro de la tarjeta — sombra interior en vez de exterior.
-              background: "color-mix(in oklab, var(--background) 92%, black)",
-              border: "1px solid color-mix(in oklab, var(--muted-foreground) 14%, transparent)",
-              boxShadow: "inset 0 0.125rem 0.5rem color-mix(in oklab, var(--foreground) 8%, transparent)",
+              background: "color-mix(in oklab, var(--background) 89%, black)",
+              border: "1px solid color-mix(in oklab, var(--muted-foreground) 20%, transparent)",
+              boxShadow: "inset 0 0.1875rem 0.625rem color-mix(in oklab, var(--foreground) 14%, transparent)",
             }}
           >
             <p className="text-xs font-bold text-muted-foreground text-center mb-4">Así se ve en tu app</p>
@@ -411,7 +413,10 @@ export default function LandingPage() {
       {/* 5. FAQ */}
       <section id="faq" className="py-9 md:py-18" style={{ borderTop: "1px solid color-mix(in oklab, var(--muted-foreground) 16%, transparent)" }}>
         <div className="max-w-[70rem] mx-auto px-5">
-        <h2 className="text-2xl md:text-2xl font-extrabold text-center">Preguntas frecuentes</h2>
+        <h2 className="text-2xl md:text-2xl font-extrabold text-center flex items-center justify-center gap-2.5">
+          {strikeMark(20)}
+          Preguntas frecuentes
+        </h2>
         <div className="max-w-[45rem] mx-auto mt-8 flex flex-col gap-2.5">
           {[
             { q: "¿Y si la abandono como las demás?", a: 'Esta no te pide configurar nada: abres y ya tienes tu tarea. Lo que no hagas se mueve solo — no hay nada que "mantener".' },
@@ -437,7 +442,7 @@ export default function LandingPage() {
           <div className="mt-6">
             <a
               href="#oferta"
-              className="inline-flex items-center justify-center h-13 px-6 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] transition"
+              className="inline-flex items-center justify-center h-13 px-6 rounded-[var(--radius-btn)] font-bold text-base text-primary-foreground active:scale-[.97] hover:brightness-[1.04] hover:-translate-y-[0.0625rem] transition-[transform,filter] duration-200"
               style={{
                 backgroundImage: "linear-gradient(180deg, color-mix(in oklab, var(--primary) 88%, white), var(--primary))",
                 boxShadow: "inset 0 1px 0 rgb(255 255 255 / .35), 0 0.875rem 1.875rem -0.625rem color-mix(in oklab, var(--primary) 50%, transparent)",
